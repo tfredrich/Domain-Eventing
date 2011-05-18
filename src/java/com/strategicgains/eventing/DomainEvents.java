@@ -4,13 +4,14 @@
 package com.strategicgains.eventing;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.strategicgains.eventing.domain.DomainEvent;
 
 /**
+ * DomainEvents defines a static public interface for raising and handling domain events.
+ * Raising an event places it in an in-memory queue that is then handled asynchronously.
+ * 
  * @author toddf
  * @since May 12, 2011
  */
@@ -23,14 +24,16 @@ public class DomainEvents
 	
 	// SECTION: INSTANCE VARIABLES
 	
-	private Map<Class<? extends DomainEvent>, List<EventConsumer>> consumersByEvent = new HashMap<Class<? extends DomainEvent>, List<EventConsumer>>();
-	private List<EventConsumer> consumers = new ArrayList<EventConsumer>();
+	private EventMonitor eventMonitor;
+	private List<EventHandler> eventHandlers = new ArrayList<EventHandler>();
 
 	
 	// SECTION: CONSTRUCTOR
 
 	private DomainEvents()
 	{
+		super();
+		this.eventMonitor = new EventMonitor(eventHandlers);
 	}
 
 
@@ -55,74 +58,67 @@ public class DomainEvents
 		instance().raiseEvent(event);
 	}
 
+	public static void startMonitoring()
+	{
+		instance().startEventMonitor();
+	}
+
+	public static void stopMonitoring()
+	{
+		instance().stopEventMonitor();
+	}
+
 	/**
-	 * Register an EventConsumer for notification when DomainEvent are raised.
+	 * Register an EventHandler for notification when DomainEvent are raised.
 	 * <p/>
 	 * Register all consumers *before* raising events as consumers get cached by which type(s) of events
 	 * they handle upon raise.
 	 * <p/>
 	 * This method is equivalent to calling instance().registerConsumer(EventConsumer).
 	 * 
-	 * @param consumer
+	 * @param handler
 	 */
-	public static void register(EventConsumer consumer)
+	public static void register(EventHandler handler)
 	{
-		instance().registerConsumer(consumer);
+		instance().registerHandler(handler);
 	}
 
 	
 	// SECTION: INSTANCE METHODS
+
+	private void startEventMonitor()
+	{
+		eventMonitor.start();
+	}
+	
+	private void stopEventMonitor()
+	{
+		eventMonitor.shutdown();
+	}
 
 	/**
 	 * Raise an event, passing it to applicable consumers synchronously.
 	 * 
 	 * @param event
 	 */
-	public void raiseEvent(DomainEvent event)
+	private void raiseEvent(DomainEvent event)
 	{
-		for (EventConsumer consumer : getConsumersFor(event.getClass()))
-		{
-			consumer.receive(event);
-		}
+		eventMonitor.raise(event);
 	}
 
 	/**
-	 * Register an EventConsumer for notification when DomainEvent are raised.
+	 * Register an EventHandler for notification when DomainEvent are raised.
 	 * <p/>
-	 * Register all consumers *before* raising events as consumers get cached by which type(s) of events
+	 * Register all handlers *before* raising events as handlers get cached by which type(s) of events
 	 * they handle upon raise.
 	 * 
-	 * @param consumer
+	 * @param handler
 	 */
-	public void registerConsumer(EventConsumer consumer)
+	public void registerHandler(EventHandler handler)
 	{
-		if (!consumers.contains(consumer))
+		if (!eventHandlers.contains(handler))
 		{
-			consumers.add(consumer);
+			eventHandlers.add(handler);
 		}
-		
-		// Clear the cache.
-		consumersByEvent.clear();
-	}
-	
-	private List<EventConsumer> getConsumersFor(Class<? extends DomainEvent> eventClass)
-	{
-		List<EventConsumer> result = consumersByEvent.get(eventClass);
-		
-		if (result == null)
-		{
-			result = new ArrayList<EventConsumer>();
-			consumersByEvent.put(eventClass, result);
-			
-			for (EventConsumer consumer : consumers)
-			{
-				if (consumer.handles(eventClass))
-				{
-					result.add(consumer);
-				}
-			}
-		}
-
-		return result;
 	}
 }
