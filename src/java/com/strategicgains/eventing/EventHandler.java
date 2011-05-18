@@ -10,8 +10,8 @@ import com.strategicgains.eventing.domain.DomainEvent;
  * @author toddf
  * @since May 12, 2011
  */
-public interface EventConsumer
+public interface EventHandler
 {
-	public void receive(DomainEvent event);
+	public void handle(DomainEvent event);
 	public boolean handles(Class<? extends DomainEvent> eventClass);
 }
