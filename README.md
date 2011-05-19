@@ -34,24 +34,24 @@ Event Flow
 
 Usage
 =====
-1) Implement *DomainEvent* marker interface in the desired event types.
-2) Implement *EventHandler* interface in class(es) to process appropriate events.
+1. Implement *DomainEvent* marker interface in the desired event types.
+2. Implement *EventHandler* interface in class(es) to process appropriate events.
    a) Implement *handles(Class)* method to return true for each DomainEvent type that the handler can process.
    b) Implement *handle(DomainEvent)* to actually process the event.
-3) Call *DomainEvents.register(EventHandler)* for each EventHandler implementation.
-4) Call *DomainEvents.startMonitoring()* at the beginning of your application.
-5) Call *DomainEvents.raise(DomainEvent)* in your domain code where events need to be raised.
+3. Call *DomainEvents.register(EventHandler)* for each EventHandler implementation.
+4. Call *DomainEvents.startMonitoring()* at the beginning of your application.
+5. Call *DomainEvents.raise(DomainEvent)* in your domain code where events need to be raised.
    - repeat as necessary.
-6) Call *DomainEvents.stopMonitoring()* at the end of your application.
+6. Call *DomainEvents.stopMonitoring()* at the end of your application.
 
 Want more than a single thread and queue to handle your domain events?  Cool!  Then ignore the static foreign
 methods in the *DomainEvents* class and utilize the *EventMonitor* thread alone.  Create as many instances of 
 *EventMonitor* as you need.  Aside from the creation of *DomainEvent* and *EventHandler* implementations
 (those parts are the same, see steps #1 & #2 above), here's the way to use *EventMonitor* on its own:
 
-1) monitor = new EventMonitor()
-2) monitor.register(EventHandler) for each EventHandler implementation.
-2) monitor.start()
-3) monitor.raise(DomainEvent) in your domain logic.
+1. monitor = new EventMonitor()
+2. monitor.register(EventHandler) for each EventHandler implementation.
+3. monitor.start()
+4. monitor.raise(DomainEvent) in your domain logic.
    - repeat as necessary
-4) monitor.shutdown()
+5. monitor.shutdown()
