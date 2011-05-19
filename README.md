@@ -26,7 +26,7 @@ Event Flow
 	<tr>
 		<td>event = concurrentQueue.poll()</td>
 		<td>----------&gt;</td>
-		<td>Get handlers that can process the given event. Utilizes handler.handles(event). This collection of handlers is cached for later use.</td>
+		<td>Get handlers that can process the given event.<br/>Utilizes handler.handles(event).<br/>This collection of handlers<br/>is cached for later use.</td>
 		<td>----------&gt;</td>
 		<td>handler.handle(event)<br/>(for each handler)</td>
 	</tr>
