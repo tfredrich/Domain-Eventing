@@ -15,9 +15,6 @@
 */
 package com.strategicgains.eventing;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.strategicgains.eventing.domain.DomainEvent;
 
 /**
@@ -37,7 +34,6 @@ public class DomainEvents
 	// SECTION: INSTANCE VARIABLES
 	
 	private EventMonitor eventMonitor;
-	private List<EventHandler> eventHandlers = new ArrayList<EventHandler>();
 
 	
 	// SECTION: CONSTRUCTOR
@@ -45,7 +41,7 @@ public class DomainEvents
 	private DomainEvents()
 	{
 		super();
-		this.eventMonitor = new EventMonitor(eventHandlers);
+		this.eventMonitor = new EventMonitor();
 	}
 
 
@@ -128,9 +124,6 @@ public class DomainEvents
 	 */
 	public void registerHandler(EventHandler handler)
 	{
-		if (!eventHandlers.contains(handler))
-		{
-			eventHandlers.add(handler);
-		}
+		eventMonitor.register(handler);
 	}
 }

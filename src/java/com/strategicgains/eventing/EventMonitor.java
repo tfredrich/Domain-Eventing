@@ -37,7 +37,7 @@ extends Thread
 	// SECTION: INSTANCE METHODS
 
 	private Map<Class<? extends DomainEvent>, List<EventHandler>> handlersByEvent = new HashMap<Class<? extends DomainEvent>, List<EventHandler>>();
-	private List<EventHandler> handlers;
+	private List<EventHandler> handlers = new ArrayList<EventHandler>();
 	private boolean shouldShutDown = false;
 	private Queue<DomainEvent> eventQueue;
 	private long delay;
@@ -45,22 +45,31 @@ extends Thread
 	
 	// SECTION: CONSTANTS
 
-	public EventMonitor(List<EventHandler> consumers)
+	public EventMonitor()
 	{
-		this(consumers, DEFAULT_DELAY);
+		this(DEFAULT_DELAY);
 	}
 
-	public EventMonitor(List<EventHandler> consumers, long pollDelayMillis)
+	public EventMonitor(long pollDelayMillis)
 	{
 		super();
 		setDaemon(true);
-		this.handlers = new ArrayList<EventHandler>(consumers);
 		this.delay = pollDelayMillis;
 		this.eventQueue = new ConcurrentLinkedQueue<DomainEvent>();
 	}
 
 	
 	// SECTION: INSTANCE METHODS
+
+	public void register(EventHandler handler)
+	{
+		if (!handlers.contains(handler))
+		{
+			handlers.add(handler);
+		}
+		
+		handlersByEvent.clear();
+	}
 
 	public synchronized void shutdown()
 	{
@@ -71,7 +80,7 @@ extends Thread
 
 	public void raise(DomainEvent event)
 	{
-		System.out.println("Raising event: " + event.toString());
+//		System.out.println("Raising event: " + event.toString());
 		eventQueue.add(event);
 
 		synchronized (this)

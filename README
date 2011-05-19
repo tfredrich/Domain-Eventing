@@ -1,0 +1,45 @@
+Overview
+========
+
+Domain-Eventing implements the Domain Events concept from Eric Evans' Domain Driven Design.
+
+This simple Java library provides a Singleton interface (see DomainEvents class) to an EventMonitor thread and a simple
+way to raise events (which implement DomainEvent marker interface) throughout the domain layer.
+
+Event handlers simply implement the EventHandler interface, which has two methods, handle(DomainEvent) and handles(Class).
+The handle() method is the implementation for dealing with the domain event and handles() returns a boolean indicating
+whether that particular EventHandler can process the given DomainEvent class.
+
+Architecture
+============
+
+Event Flow
+==========
+
+Domain Model
+------------
+
+DomainEvents.raise(event) ----------> eventMonitor.raise(event) -----------> concurrentQueue.add(event)
+                                                                             monitorThread.notify()
+
+Monitor Thread (on notify)
+--------------------------
+
+event = concurrentQueue.poll() -----> Get handlers that can ---------------> handler.handle(event)
+                                      process the given event.
+                                      Utilizes handler.handles(event)
+                                      This collection of handlers
+                                      is cached for later use.
+
+Usage
+=====
+
+1) Implement DomainEvent marker interface in the desired event types.
+2) Implement EventHandler interface in class(es) to process appropriate events.
+   a) Implement handles(Class) method to return true for each DomainEvent type that the handler can process.
+   b) Implement handle(DomainEvent) to actually process the event.
+3) Call DomainEvents.register(EventHandler) for each EventHandler implementation.
+4) Call DomainEvents.startMonitoring() at the beginning of your application.
+5) Call DomainEvents.raise(DomainEvent) in your domain code where events need to be raised.
+   - repeat as necessary.
+6) Call DomainEvents.stopMonitoring() at the end of your application.
