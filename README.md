@@ -36,8 +36,8 @@ Usage
 =====
 1. Implement *DomainEvent* marker interface in the desired event types.
 2. Implement *EventHandler* interface in class(es) to process appropriate events.
-   a) Implement *handles(Class)* method to return true for each DomainEvent type that the handler can process.
-   b) Implement *handle(DomainEvent)* to actually process the event.
+   1. Implement *handles(Class)* method to return true for each DomainEvent type that the handler can process.
+   2. Implement *handle(DomainEvent)* to actually process the event.
 3. Call *DomainEvents.register(EventHandler)* for each EventHandler implementation.
 4. Call *DomainEvents.startMonitoring()* at the beginning of your application.
 5. Call *DomainEvents.raise(DomainEvent)* in your domain code where events need to be raised.
