@@ -12,15 +12,27 @@ whether that particular EventHandler can process the given DomainEvent class.
 Event Flow
 ==========
 ### Domain Model
-**DomainEvents.raise(event)** ----------> **eventMonitor.raise(event)** -----------> **concurrentQueue.add(event)**
-                                                                             **monitorThread.notify()**
-
+<table border="0">
+	<tr>
+		<td>**DomainEvents.raise(event)**</td>
+		<td>----------&gt;</td>
+		<td>**eventMonitor.raise(event)**</td>
+		<td>----------&gt;</td>
+		<td>**concurrentQueue.add(event)**<br/>**monitorThread.notify()**</td>
+	</tr>
+</table>
 ### Monitor Thread (on notify)
-event = **concurrentQueue.poll()** -----> Get handlers that can            +---> **handler.handle(event)** ---+---> **wait()**
-                                      process the given event.         |                ^             |
-                                      Utilizes **handler.handles(event)**  |                |             |
-                                      This collection of handlers      |          for each handler ---+
-                                      is cached for later use. --------+
+<table border="0">
+	<tr>
+		<td>event = **concurrentQueue.poll()**</td>
+		<td>----------&gt;</td>
+		<td>Get handlers that can process the given event. Utilizes **handler.handles(event)**. This collection of handlers is cached for later use.</td>
+		<td>----------&gt;</td>
+		<td>**handler.handle(event)**<br/>(for each handler)</td>
+		<td>----------&gt;</td>
+		<td>**wait()**</td>
+	</tr>
+</table>
 
 Usage
 =====
