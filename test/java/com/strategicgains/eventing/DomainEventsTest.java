@@ -21,6 +21,7 @@ import com.strategicgains.eventing.domain.DomainEvent;
 public class DomainEventsTest
 {
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
+	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	
 	@BeforeClass
 	public static void startup()
@@ -38,6 +39,7 @@ public class DomainEventsTest
 	public void setup()
 	{
 		DomainEvents.register(handler);
+		DomainEvents.register(ignoredHandler);
 	}
 
 	@Test
@@ -54,6 +56,7 @@ public class DomainEventsTest
 		DomainEvents.raise(new HandledEvent());
 		Thread.sleep(5);
 		assertEquals(1, handler.getCallCount());
+		assertEquals(0, ignoredHandler.getCallCount());
 	}
 
 	@Test
@@ -73,6 +76,7 @@ public class DomainEventsTest
 		DomainEvents.raise(new IgnoredEvent());
 		Thread.sleep(5);
 		assertEquals(5, handler.getCallCount());
+		assertEquals(5, ignoredHandler.getCallCount());
 	}
 
 	@Test
@@ -83,6 +87,7 @@ public class DomainEventsTest
 		DomainEvents.raise(new IgnoredEvent());
 		Thread.sleep(5);
 		assertEquals(0, handler.getCallCount());
+		assertEquals(1, ignoredHandler.getCallCount());
 	}
 
 	
@@ -97,7 +102,7 @@ public class DomainEventsTest
 	implements DomainEvent
 	{
 	}
-	
+
 	private class DomainEventsTestHandler
 	implements EventHandler
 	{
@@ -106,6 +111,7 @@ public class DomainEventsTest
 		@Override
 		public void handle(DomainEvent event)
 		{
+			assert(event.getClass().equals(HandledEvent.class));
 			++callCount;
 		}
 		
@@ -118,6 +124,35 @@ public class DomainEventsTest
 		public boolean handles(Class<? extends DomainEvent> eventClass)
 		{
 			if (HandledEvent.class.isAssignableFrom(eventClass))
+			{
+				return true;
+			}
+			
+			return false;
+		}		
+	}
+
+	private class DomainEventsTestIgnoredEventsHandler
+	implements EventHandler
+	{
+		private int callCount = 0;
+
+		@Override
+		public void handle(DomainEvent event)
+		{
+			assert(event.getClass().equals(IgnoredEvent.class));
+			++callCount;
+		}
+		
+		public int getCallCount()
+		{
+			return callCount;
+		}
+
+		@Override
+		public boolean handles(Class<? extends DomainEvent> eventClass)
+		{
+			if (IgnoredEvent.class.isAssignableFrom(eventClass))
 			{
 				return true;
 			}

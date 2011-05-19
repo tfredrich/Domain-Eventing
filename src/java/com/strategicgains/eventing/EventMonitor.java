@@ -120,7 +120,7 @@ extends Thread
 
 			while ((event = eventQueue.poll()) != null)
 			{
-				System.out.println("Processing event: " + event.toString());
+//				System.out.println("Processing event: " + event.toString());
 				for (EventHandler handler : getConsumersFor(event.getClass()))
 				{
 					try
