@@ -104,9 +104,9 @@ extends Thread
 		{
 			try
 			{
-				if (eventQueue.isEmpty())
+				synchronized (this)
 				{
-					synchronized (this)
+					if (eventQueue.isEmpty())
 					{
 						wait(delay);
 					}
@@ -133,8 +133,6 @@ extends Thread
 					catch(Exception e)
 					{
 						e.printStackTrace();
-						System.out.println("Event handler failed. Re-publishing event: " + event.toString());
-						raise(event);
 					}
 				}
 			}
