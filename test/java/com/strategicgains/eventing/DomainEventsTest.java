@@ -90,12 +90,54 @@ public class DomainEventsTest
 		assertEquals(1, ignoredHandler.getCallCount());
 	}
 
+	@Test
+	public void shouldRetryEventHandler()
+	throws Exception
+	{
+		assertEquals(0, handler.getCallCount());
+		DomainEvents.raise(new ErroredEvent());
+		Thread.sleep(50);
+		assertEquals(6, handler.getCallCount());
+		assertEquals(0, ignoredHandler.getCallCount());
+	}
+
+	@Test
+	public void shouldNotRetryEventHandler()
+	throws Exception
+	{
+		DomainEvents.setReRaiseOnError(false);
+		assertEquals(0, handler.getCallCount());
+		DomainEvents.raise(new ErroredEvent());
+		Thread.sleep(50);
+		assertEquals(1, handler.getCallCount());
+		assertEquals(0, ignoredHandler.getCallCount());
+	}
+
 	
 	// SECTION: INNER CLASSES
 
 	private class HandledEvent
 	implements DomainEvent
 	{
+		public void kerBlooey()
+		{
+			// do nothing.
+		}
+	}
+	
+	private class ErroredEvent
+	extends HandledEvent
+	{
+		private int occurrences = 0;
+
+		@Override
+		public void kerBlooey()
+		{
+			if (occurrences++ < 5)
+			{
+				throw new RuntimeException("KER-BLOOEY!");
+			}
+		}
 	}
 	
 	private class IgnoredEvent
@@ -111,8 +153,10 @@ public class DomainEventsTest
 		@Override
 		public void handle(DomainEvent event)
 		{
-			assert(event.getClass().equals(HandledEvent.class));
+			assert(HandledEvent.class.isAssignableFrom(event.getClass()));
+
 			++callCount;
+			((HandledEvent) event).kerBlooey();
 		}
 		
 		public int getCallCount()

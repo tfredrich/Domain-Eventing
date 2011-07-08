@@ -43,6 +43,7 @@ extends Thread
 	private List<EventHandler> handlers = new ArrayList<EventHandler>();
 	private boolean shouldShutDown = false;
 	private Queue<DomainEvent> eventQueue;
+	private boolean shouldReRaiseOnError = true;
 	private long delay;
 
 	
@@ -92,6 +93,11 @@ extends Thread
 		}
 	}
 
+	public void setReRaiseOnError(boolean value)
+	{
+		this.shouldReRaiseOnError = value;
+	}
+
 	
 	// SECTION: RUNNABLE/THREAD
 
@@ -133,6 +139,12 @@ extends Thread
 					catch(Exception e)
 					{
 						e.printStackTrace();
+						
+						if (shouldReRaiseOnError)
+						{
+//							System.out.println("Event handler failed. Re-publishing event: " + event.toString());
+							raise(event);
+						}
 					}
 				}
 			}

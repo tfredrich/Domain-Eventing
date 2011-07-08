@@ -66,6 +66,18 @@ public class DomainEvents
 		instance().raiseEvent(event);
 	}
 
+	/**
+	 * When true, re-raise events when an exception happens in the event handler. Setting
+	 * to false causes the event to get dropped when an exception happens in the event handler.
+	 * The default is true.
+	 * 
+	 * @param value true to retry, false to ignore events that fail processing.
+	 */
+	public static void setReRaiseOnError(boolean value)
+	{
+		instance().setRetryOnError(value);
+	}
+
 	public static void startMonitoring()
 	{
 		instance().startEventMonitor();
@@ -112,6 +124,17 @@ public class DomainEvents
 	private void raiseEvent(DomainEvent event)
 	{
 		eventMonitor.raise(event);
+	}
+
+	/**
+	 * When true, re-raise events when an exception happens in the event handler. Setting
+	 * to false causes the event to get dropped when an exception happens in the event handler.
+	 * 
+	 * @param value true to retry, false to ignore events that fail processing.
+	 */
+	private void setRetryOnError(boolean value)
+	{
+		eventMonitor.setReRaiseOnError(value);
 	}
 
 	/**
