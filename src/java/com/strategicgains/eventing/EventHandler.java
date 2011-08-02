@@ -19,11 +19,30 @@ import com.strategicgains.eventing.domain.DomainEvent;
 
 
 /**
+ * Defines the interface for objects that can process (handle) domain events.
+ * Implementations of this interface are registered with the EventMonitor via
+ * a call to DomainEvents.register() or with the EventMonitor instance directly
+ * (e.g. eventMonitorInstance.register()).
+ * 
  * @author toddf
  * @since May 12, 2011
  */
 public interface EventHandler
 {
+	/**
+	 * Process the given event. Called by the EventMonitor when an event occurs.
+	 * 
+	 * @param event
+	 */
 	public void handle(DomainEvent event);
+	
+	/**
+	 * Answers whether this EventHandler can handle events of the given type.
+	 * If true is returned, the EventMonitor will call handle(), otherwhise,
+	 * the EventMonitor will not ask this event handler to process the event.
+	 * 
+	 * @param eventClass
+	 * @return
+	 */
 	public boolean handles(Class<? extends DomainEvent> eventClass);
 }

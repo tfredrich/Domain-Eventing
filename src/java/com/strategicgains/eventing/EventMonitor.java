@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import com.strategicgains.eventing.domain.DomainEvent;
 
 /**
- * A thread that allow clients to raise events.  Registered event handlers
+ * A thread that allows clients to raise events.  Registered event handlers
  * will be called for whatever event types each can process.
  * 
  * @author toddf

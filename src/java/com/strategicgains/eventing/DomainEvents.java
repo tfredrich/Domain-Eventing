@@ -19,7 +19,8 @@ import com.strategicgains.eventing.domain.DomainEvent;
 
 /**
  * DomainEvents defines a static public interface for raising and handling domain events.
- * Raising an event places it in an in-memory queue that is then handled asynchronously.
+ * Raising an event places it in an in-memory queue that is then handled asynchronously
+ * by an EventMonitor.
  * 
  * @author toddf
  * @since May 12, 2011
