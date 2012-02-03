@@ -38,7 +38,7 @@ public interface EventHandler
 	
 	/**
 	 * Answers whether this EventHandler can handle events of the given type.
-	 * If true is returned, the EventMonitor will call handle(), otherwhise,
+	 * If true is returned, the EventMonitor will call handle(), otherwise,
 	 * the EventMonitor will not ask this event handler to process the event.
 	 * 
 	 * @param eventClass

@@ -21,6 +21,21 @@ import com.strategicgains.eventing.domain.DomainEvent;
  * DomainEvents defines a static public interface for raising and handling domain events.
  * Raising an event places it in an in-memory queue that is then handled asynchronously
  * by an EventMonitor.
+ * <p/>
+ * Domain events are publish-subscribe, where when an event is raised, all appropriate
+ * EventHandler instances are notified of that event.
+ * <p/>
+ * To utilize domain events in your applications:
+ * <ol>
+ * <li>Implement DomainEvent sub-class(es) to represent each event type.</li>
+ * <li>Implement EventHandler sub-class(es) for processing the events, overriding the handles(Class)
+ * method to describe which DomainEvent sub-types the handler can process.</li>
+ * <li>DomainEvents.register(new <EventHandlerSubType>()); // In main() or startup for each EventHandler.</li>
+ * <li>Call DomainEvents.raise(new DomainEventSubType()) wherever domain events should be raised.
+ * </ol>
+ * 
+ * All raised DomainEvent instances are handled asynchronously, in a separate Thread, which is
+ * the EventMonitor managed by DomainEvents.
  * 
  * @author toddf
  * @since May 12, 2011
