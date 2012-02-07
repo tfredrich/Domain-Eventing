@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
 import com.strategicgains.eventing.domain.DomainEvent;
 
@@ -42,18 +41,18 @@ extends Thread
 	private List<EventHandler> handlers = new ArrayList<EventHandler>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
-	private Queue<DomainEvent> eventQueue;
+	private EventQueue eventQueue;
 	private long delay;
 
 	
 	// SECTION: CONSTANTS
 
-	public EventMonitor(Queue<DomainEvent> queue)
+	public EventMonitor(EventQueue queue)
 	{
 		this(queue, DEFAULT_DELAY);
 	}
 
-	public EventMonitor(Queue<DomainEvent> queue, long pollDelayMillis)
+	public EventMonitor(EventQueue queue, long pollDelayMillis)
 	{
 		super();
 		setDaemon(true);
@@ -81,17 +80,6 @@ extends Thread
 		notify();
 	}
 
-	public void raise(DomainEvent event)
-	{
-//		System.out.println("Raising event: " + event.toString());
-		eventQueue.add(event);
-
-		synchronized (this)
-		{
-			notify();
-		}
-	}
-
 	public void setReRaiseOnError(boolean value)
 	{
 		this.shouldReRaiseOnError = value;
@@ -109,11 +97,11 @@ extends Thread
 		{
 			try
 			{
-				synchronized (this)
+				synchronized (eventQueue)
 				{
 					if (eventQueue.isEmpty())
 					{
-						wait(delay);
+						eventQueue.wait(delay);
 					}
 				}
 			}
@@ -142,7 +130,7 @@ extends Thread
 						if (shouldReRaiseOnError)
 						{
 //							System.out.println("Event handler failed. Re-publishing event: " + event.toString());
-							raise(event);
+							eventQueue.raise(event);
 						}
 					}
 				}
