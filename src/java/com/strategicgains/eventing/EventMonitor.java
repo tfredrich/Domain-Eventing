@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.strategicgains.eventing.domain.DomainEvent;
 
@@ -42,24 +41,24 @@ extends Thread
 	private Map<Class<? extends DomainEvent>, List<EventHandler>> handlersByEvent = new HashMap<Class<? extends DomainEvent>, List<EventHandler>>();
 	private List<EventHandler> handlers = new ArrayList<EventHandler>();
 	private boolean shouldShutDown = false;
-	private Queue<DomainEvent> eventQueue;
 	private boolean shouldReRaiseOnError = true;
+	private Queue<DomainEvent> eventQueue;
 	private long delay;
 
 	
 	// SECTION: CONSTANTS
 
-	public EventMonitor()
+	public EventMonitor(Queue<DomainEvent> queue)
 	{
-		this(DEFAULT_DELAY);
+		this(queue, DEFAULT_DELAY);
 	}
 
-	public EventMonitor(long pollDelayMillis)
+	public EventMonitor(Queue<DomainEvent> queue, long pollDelayMillis)
 	{
 		super();
 		setDaemon(true);
 		this.delay = pollDelayMillis;
-		this.eventQueue = new ConcurrentLinkedQueue<DomainEvent>();
+		this.eventQueue = queue;
 	}
 
 	

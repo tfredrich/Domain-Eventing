@@ -15,6 +15,9 @@
 */
 package com.strategicgains.eventing;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import com.strategicgains.eventing.domain.DomainEvent;
 
 /**
@@ -48,8 +51,9 @@ public class DomainEvents
 
 	
 	// SECTION: INSTANCE VARIABLES
-	
+
 	private EventMonitor eventMonitor;
+	private Queue<DomainEvent> eventQueue = new ConcurrentLinkedQueue<DomainEvent>();
 
 	
 	// SECTION: CONSTRUCTOR
@@ -57,7 +61,7 @@ public class DomainEvents
 	private DomainEvents()
 	{
 		super();
-		this.eventMonitor = new EventMonitor();
+		this.eventMonitor = new EventMonitor(eventQueue);
 	}
 
 
