@@ -149,6 +149,16 @@ public class DomainEvents
 		instance().registerHandler(handler);
 	}
 
+	/**
+	 * Remove an EventHandler from receiving notification when DomainEvent are raised.
+	 * 
+	 * @param handler the handler to remove from receiving notifications.
+	 */
+	public static void unregister(EventHandler handler)
+	{
+		instance().unregisterHandler(handler);
+	}
+
 	
 	// SECTION: INSTANCE METHODS
 
@@ -203,11 +213,27 @@ public class DomainEvents
 	 * 
 	 * @param handler
 	 */
-	private void registerHandler(EventHandler handler)
+	public void registerHandler(EventHandler handler)
 	{
 		for (EventMonitor eventMonitor : eventMonitors)
 		{
 			eventMonitor.register(handler);
+		}
+	}
+
+	/**
+	 * Register an EventHandler for notification when DomainEvent are raised.
+	 * <p/>
+	 * Register all handlers *before* raising events as handlers get cached by which type(s) of events
+	 * they handle upon raise.
+	 * 
+	 * @param handler
+	 */
+	public void unregisterHandler(EventHandler handler)
+	{
+		for (EventMonitor eventMonitor : eventMonitors)
+		{
+			eventMonitor.unregister(handler);
 		}
 	}
 	

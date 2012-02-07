@@ -6,6 +6,7 @@ package com.strategicgains.eventing;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -27,7 +28,7 @@ public class DomainEventsTest
 	@BeforeClass
 	public static void startup()
 	{
-		DomainEvents.setEventMonitorCount(3);
+		DomainEvents.setEventMonitorCount(5);
 		DomainEvents.startMonitoring();
 	}
 	
@@ -43,6 +44,14 @@ public class DomainEventsTest
 		DomainEvents.register(handler);
 		DomainEvents.register(ignoredHandler);
 		DomainEvents.register(longHandler);
+	}
+	
+	@After
+	public void teardown()
+	{
+		DomainEvents.unregister(handler);
+		DomainEvents.unregister(ignoredHandler);
+		DomainEvents.unregister(longHandler);
 	}
 
 	@Test
@@ -131,10 +140,13 @@ public class DomainEventsTest
 		DomainEvents.raise(new LongEvent());
 		DomainEvents.raise(new LongEvent());
 		DomainEvents.raise(new LongEvent());
-		Thread.sleep(1500);
+		DomainEvents.raise(new LongEvent());
+		DomainEvents.raise(new LongEvent());
+		Thread.sleep(100);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
-		assertEquals(3, longHandler.getCallCount());
+		System.out.println("longHandler instance=" + longHandler.toString());
+		assertEquals(5, longHandler.getCallCount());
 	}
 
 	
@@ -174,7 +186,7 @@ public class DomainEventsTest
 	{
 	}
 
-	private class DomainEventsTestHandler
+	private static class DomainEventsTestHandler
 	implements EventHandler
 	{
 		private int callCount = 0;
@@ -205,7 +217,7 @@ public class DomainEventsTest
 		}		
 	}
 
-	private class DomainEventsTestIgnoredEventsHandler
+	private static class DomainEventsTestIgnoredEventsHandler
 	implements EventHandler
 	{
 		private int callCount = 0;
@@ -234,7 +246,7 @@ public class DomainEventsTest
 		}		
 	}
 
-	private class DomainEventsTestLongEventHandler
+	private static class DomainEventsTestLongEventHandler
 	implements EventHandler
 	{
 		private int callCount = 0;
@@ -246,7 +258,9 @@ public class DomainEventsTest
 			++callCount;
 			try
             {
-	            Thread.sleep(200);
+				// pretend the long event takes 1 second to process...
+				System.out.println("Event handler " + this.toString() + " going to sleep..." + callCount);
+	            Thread.sleep(1000);
             }
             catch (InterruptedException e)
             {

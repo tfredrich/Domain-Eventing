@@ -73,6 +73,14 @@ extends Thread
 		handlersByEvent.clear();
 	}
 
+	public void unregister(EventHandler handler)
+	{
+		if (handlers.remove(handler))
+		{
+			handlersByEvent.clear();
+		}
+	}
+
 	public synchronized void shutdown()
 	{
 		shouldShutDown = true;
@@ -116,7 +124,7 @@ extends Thread
 
 			while ((event = eventQueue.poll()) != null)
 			{
-//				System.out.println("Processing event: " + event.toString());
+				System.out.println("Processing event: " + event.toString());
 				for (EventHandler handler : getConsumersFor(event.getClass()))
 				{
 					try
@@ -129,7 +137,7 @@ extends Thread
 						
 						if (shouldReRaiseOnError)
 						{
-//							System.out.println("Event handler failed. Re-publishing event: " + event.toString());
+							System.out.println("Event handler failed. Re-publishing event: " + event.toString());
 							eventQueue.raise(event);
 						}
 					}
@@ -138,6 +146,8 @@ extends Thread
 		}
 		
 		System.out.println("Event monitor exiting...");
+		handlers.clear();
+		handlersByEvent.clear();
 	}
 
 	
