@@ -26,6 +26,7 @@ public class DomainEventsTest
 	@BeforeClass
 	public static void startup()
 	{
+		DomainEvents.setEventMonitorCount(3);
 		DomainEvents.startMonitoring();
 	}
 	
