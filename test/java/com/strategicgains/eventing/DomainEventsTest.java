@@ -22,7 +22,8 @@ public class DomainEventsTest
 {
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
-	
+	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
+
 	@BeforeClass
 	public static void startup()
 	{
@@ -41,6 +42,7 @@ public class DomainEventsTest
 	{
 		DomainEvents.register(handler);
 		DomainEvents.register(ignoredHandler);
+		DomainEvents.register(longHandler);
 	}
 
 	@Test
@@ -58,6 +60,7 @@ public class DomainEventsTest
 		Thread.sleep(5);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
+		assertEquals(0, longHandler.getCallCount());
 	}
 
 	@Test
@@ -65,6 +68,7 @@ public class DomainEventsTest
 	throws Exception
 	{
 		assertEquals(0, handler.getCallCount());
+		assertEquals(0, ignoredHandler.getCallCount());
 		DomainEvents.raise(new HandledEvent());
 		DomainEvents.raise(new IgnoredEvent());
 		DomainEvents.raise(new HandledEvent());
@@ -78,17 +82,19 @@ public class DomainEventsTest
 		Thread.sleep(5);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
+		assertEquals(0, longHandler.getCallCount());
 	}
 
 	@Test
 	public void shouldNotNotifyEventHandler()
 	throws Exception
 	{
-		assertEquals(0, handler.getCallCount());
+		assertEquals(0, ignoredHandler.getCallCount());
 		DomainEvents.raise(new IgnoredEvent());
 		Thread.sleep(5);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(1, ignoredHandler.getCallCount());
+		assertEquals(0, longHandler.getCallCount());
 	}
 
 	@Test
@@ -100,6 +106,7 @@ public class DomainEventsTest
 		Thread.sleep(50);
 		assertEquals(6, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
+		assertEquals(0, longHandler.getCallCount());
 	}
 
 	@Test
@@ -112,6 +119,22 @@ public class DomainEventsTest
 		Thread.sleep(50);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
+		assertEquals(0, longHandler.getCallCount());
+	}
+
+	@Test
+	public void shouldProcessInParallel()
+	throws Exception
+	{
+		DomainEvents.setReRaiseOnError(false);
+		assertEquals(0, longHandler.getCallCount());
+		DomainEvents.raise(new LongEvent());
+		DomainEvents.raise(new LongEvent());
+		DomainEvents.raise(new LongEvent());
+		Thread.sleep(1500);
+		assertEquals(0, handler.getCallCount());
+		assertEquals(0, ignoredHandler.getCallCount());
+		assertEquals(3, longHandler.getCallCount());
 	}
 
 	
@@ -142,6 +165,11 @@ public class DomainEventsTest
 	}
 	
 	private class IgnoredEvent
+	implements DomainEvent
+	{
+	}
+	
+	private class LongEvent
 	implements DomainEvent
 	{
 	}
@@ -198,6 +226,43 @@ public class DomainEventsTest
 		public boolean handles(Class<? extends DomainEvent> eventClass)
 		{
 			if (IgnoredEvent.class.isAssignableFrom(eventClass))
+			{
+				return true;
+			}
+			
+			return false;
+		}		
+	}
+
+	private class DomainEventsTestLongEventHandler
+	implements EventHandler
+	{
+		private int callCount = 0;
+
+		@Override
+		public void handle(DomainEvent event)
+		{
+			assert(event.getClass().equals(LongEvent.class));
+			++callCount;
+			try
+            {
+	            Thread.sleep(200);
+            }
+            catch (InterruptedException e)
+            {
+	            e.printStackTrace();
+            }
+		}
+		
+		public int getCallCount()
+		{
+			return callCount;
+		}
+
+		@Override
+		public boolean handles(Class<? extends DomainEvent> eventClass)
+		{
+			if (LongEvent.class.isAssignableFrom(eventClass))
 			{
 				return true;
 			}
