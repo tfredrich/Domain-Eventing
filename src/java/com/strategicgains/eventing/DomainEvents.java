@@ -44,20 +44,21 @@ public class DomainEvents
 {
 	// SECTION: CONSTANTS
 
+	private static final int DEFAULT_DOMAIN_EVENT_WORKERS = 1;
 	private static final DomainEvents INSTANCE = new DomainEvents();
 
 	
 	// SECTION: INSTANCE VARIABLES
 
-	private EventMonitor eventMonitor;
-	private EventQueue eventQueue;
+	private EventMonitor[] eventMonitors;
+	private EventQueue eventQueue = new EventQueue();
+	private int eventWorkerCount = DEFAULT_DOMAIN_EVENT_WORKERS;
 	
 	// SECTION: CONSTRUCTOR
 
 	private DomainEvents()
 	{
 		super();
-		this.eventMonitor = new EventMonitor(eventQueue);
 	}
 
 
@@ -94,14 +95,43 @@ public class DomainEvents
 		instance().setRetryOnError(value);
 	}
 
-	public static void startMonitoring()
+	/**
+	 * Return the number of EventMonitor threads that will be started when
+	 * DomainEvents.startMonitoring() is called.
+	 * 
+	 * @return the number of EventMonitor threads
+	 */
+	public static int getEventMonitorCount()
 	{
-		instance().startEventMonitor();
+		return instance().getEventWorkerCount();
+	}
+	
+	/**
+	 * Set the number of EventMonitor threads to start when DomainEvents.startMonitoring()
+	 * is called.
+	 * 
+	 * @param value the number of desired EventMonitor threads.
+	 */
+	public static void setEventMonitorCount(int value)
+	{
+		instance().setEventWorkerCount(value);
 	}
 
+	/**
+	 * Instantiate and start the EventMonitor threads to begin processing DomainEvent messages.
+	 * Must be performed before calling DomainEvents.raise()
+	 */
+	public static void startMonitoring()
+	{
+		instance().startEventMonitors();
+	}
+
+	/**
+	 * Shutdown domain event handling.  Call during application shutdown.
+	 */
 	public static void stopMonitoring()
 	{
-		instance().stopEventMonitor();
+		instance().stopEventMonitors();
 	}
 
 	/**
@@ -122,14 +152,23 @@ public class DomainEvents
 	
 	// SECTION: INSTANCE METHODS
 
-	private void startEventMonitor()
+	private void startEventMonitors()
 	{
-		eventMonitor.start();
+		eventMonitors = new EventMonitor[getEventWorkerCount()];
+		
+		for (int i = 0; i < getEventWorkerCount(); ++i)
+		{
+			eventMonitors[i] = new EventMonitor(eventQueue);
+			eventMonitors[i].start();
+		}
 	}
 	
-	private void stopEventMonitor()
+	private void stopEventMonitors()
 	{
-		eventMonitor.shutdown();
+		for (EventMonitor eventMonitor : eventMonitors)
+		{
+			eventMonitor.shutdown();
+		}
 	}
 
 	/**
@@ -150,7 +189,10 @@ public class DomainEvents
 	 */
 	private void setRetryOnError(boolean value)
 	{
-		eventMonitor.setReRaiseOnError(value);
+		for (EventMonitor eventMonitor : eventMonitors)
+		{
+			eventMonitor.setReRaiseOnError(value);
+		}
 	}
 
 	/**
@@ -161,8 +203,21 @@ public class DomainEvents
 	 * 
 	 * @param handler
 	 */
-	public void registerHandler(EventHandler handler)
+	private void registerHandler(EventHandler handler)
 	{
-		eventMonitor.register(handler);
+		for (EventMonitor eventMonitor : eventMonitors)
+		{
+			eventMonitor.register(handler);
+		}
+	}
+	
+	private int getEventWorkerCount()
+	{
+		return eventWorkerCount;
+	}
+	
+	private void setEventWorkerCount(int value)
+	{
+		this.eventWorkerCount = value;
 	}
 }
