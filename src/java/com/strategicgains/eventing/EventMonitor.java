@@ -146,12 +146,17 @@ extends Thread
 		}
 		
 		System.out.println("Event monitor exiting...");
-		handlers.clear();
-		handlersByEvent.clear();
+		clearAllHandlers();
 	}
 
 	
 	// SECTION: UTILITY - PRIVATE
+
+	private void clearAllHandlers()
+    {
+	    handlers.clear();
+		handlersByEvent.clear();
+    }
 
 	private List<EventHandler> getConsumersFor(Class<? extends DomainEvent> eventClass)
 	{

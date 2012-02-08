@@ -15,6 +15,9 @@
 */
 package com.strategicgains.eventing;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.strategicgains.eventing.domain.DomainEvent;
 
 /**
@@ -46,6 +49,7 @@ public class DomainEvents
 
 	private static final int DEFAULT_DOMAIN_EVENT_WORKERS = 1;
 	private static final DomainEvents INSTANCE = new DomainEvents();
+	private static final List<EventHandler> registeredHandlers = new ArrayList<EventHandler>();
 
 	
 	// SECTION: INSTANCE VARIABLES
@@ -53,6 +57,7 @@ public class DomainEvents
 	private EventMonitor[] eventMonitors;
 	private EventQueue eventQueue = new EventQueue();
 	private int eventWorkerCount = DEFAULT_DOMAIN_EVENT_WORKERS;
+	private boolean isStarted = false;
 	
 	// SECTION: CONSTRUCTOR
 
@@ -146,6 +151,7 @@ public class DomainEvents
 	 */
 	public static void register(EventHandler handler)
 	{
+		registeredHandlers.add(handler);
 		instance().registerHandler(handler);
 	}
 
@@ -156,6 +162,7 @@ public class DomainEvents
 	 */
 	public static void unregister(EventHandler handler)
 	{
+		registeredHandlers.remove(handler);
 		instance().unregisterHandler(handler);
 	}
 
@@ -171,6 +178,9 @@ public class DomainEvents
 			eventMonitors[i] = new EventMonitor(eventQueue);
 			eventMonitors[i].start();
 		}
+		
+		isStarted = true;
+		registerHandlers(registeredHandlers);
 	}
 	
 	private void stopEventMonitors()
@@ -179,6 +189,9 @@ public class DomainEvents
 		{
 			eventMonitor.shutdown();
 		}
+		
+		unregisterHandlers(registeredHandlers);
+		isStarted = false;
 	}
 
 	/**
@@ -215,6 +228,8 @@ public class DomainEvents
 	 */
 	public void registerHandler(EventHandler handler)
 	{
+		if (!isStarted) return;
+
 		for (EventMonitor eventMonitor : eventMonitors)
 		{
 			eventMonitor.register(handler);
@@ -231,9 +246,31 @@ public class DomainEvents
 	 */
 	public void unregisterHandler(EventHandler handler)
 	{
+		if (!isStarted) return;
+
 		for (EventMonitor eventMonitor : eventMonitors)
 		{
 			eventMonitor.unregister(handler);
+		}
+	}
+	
+	private void registerHandlers(List<EventHandler> handlers)
+	{
+		assert(isStarted);
+
+		for(EventHandler handler : handlers)
+		{
+			registerHandler(handler);
+		}
+	}
+	
+	private void unregisterHandlers(List<EventHandler> handlers)
+	{
+		assert(isStarted);
+
+		for(EventHandler handler : handlers)
+		{
+			unregisterHandler(handler);
 		}
 	}
 	
