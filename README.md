@@ -45,15 +45,18 @@ Usage
   - repeat as necessary.
 7. Call *DomainEvents.stopMonitoring()* at the end of your application.
 
-Want to manage your own EventMonitor threads?  Cool!  Then ignore the static foreign methods in the *DomainEvents* class and utilize the *EventQueue* class and *EventMonitor* thread alone.  Create as many instances of *EventMonitor* as you need.  Aside from the creation of *DomainEvent* and *EventHandler* implementations (those parts are the same, see steps #1 & #2 above), here's the way to use *EventMonitor* on its own:
+Want to manage your own EventMonitor threads?  Cool!  Then ignore the static foreign methods in the *DomainEvents* class and utilize the *EventQueue* class and *EventMonitor* thread alone.  Create as many instances of *EventMonitor* as you need, passing in the single *EventQueue* instance to each constructor. Here's the way to use *EventMonitor* on its own:
 
-1. monitor = new EventMonitor()
-2. monitor.register(EventHandler) for each EventHandler implementation.
-3. monitor.start()
-4. monitor.setReRaiseOnError(true)--optional.
-5. monitor.raise(Object) in your domain logic.
+1. eventQueue = new EventQueue();
+2. monitor = new EventMonitor(eventQueue);  // repeat this step for each monitor thread you need.
+3. monitor.register(EventHandler) for each EventHandler implementation.
+4. monitor.start(); // for each event monitor thread created in step 2.
+5. monitor.setReRaiseOnError(true)--optional.
+6. monitor.raise(Object) in your domain logic.
    - repeat as necessary
-6. monitor.shutdown()
+7. monitor.shutdown(); //for each event monitor thread created in step 2.
+
+BTW, the above process is the same the DomainEvents manages for you.
 
 Release Notes
 =============
@@ -62,6 +65,4 @@ Release Notes
 * Introduced EventQueue, allowing multiple EventMonitor threads to be processing events from the queue simultaneously.
 
 ### 0.1.0
-Initial release.
-=======
-6. monitor.shutdown() at the end of your application, for each individual EventMonitor instance.
+* Initial release.
