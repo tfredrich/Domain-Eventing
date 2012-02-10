@@ -38,22 +38,22 @@ Usage
    1. Implement *handles(Class)* method to return true for each DomainEvent type that the handler can process.
    2. Implement *handle(Object)* to actually process the event.
 2. Call *DomainEvents.register(EventHandler)* for each EventHandler implementation.
-3. Call *DomainEvents.startMonitoring()* at the beginning of your application.
-4. Call *DomainEvents.raise(Object)* in your domain code where events need to be raised.
-   - repeat as necessary.
-5. Call *DomainEvents.stopMonitoring()* at the end of your application.
+3. Optionally, call *DomainEvents.setEventMonitorCount(n)*, where n > 1 and indicates the number of EventMonitor threads to run--to handle multiple events in parallel.
+4. Optionally, call *DomainEvents.setReRaiseOnError(true)* to re-raise an event when an error occurs processing an event. 
+5. Call *DomainEvents.startMonitoring()* at the beginning of your application.
+6. Call *DomainEvents.raise(Object)* in your domain code where events need to be raised.
+  - repeat as necessary.
+7. Call *DomainEvents.stopMonitoring()* at the end of your application.
 
-Want more than a single thread and queue to handle your domain events?  Cool!  Then ignore the static foreign
-methods in the *DomainEvents* class and utilize the *EventMonitor* thread alone.  Create as many instances of 
-*EventMonitor* as you need.  Aside from the creation of *DomainEvent* and *EventHandler* implementations
-(those parts are the same, see steps #1 & #2 above), here's the way to use *EventMonitor* on its own:
+Want to manage your own EventMonitor threads?  Cool!  Then ignore the static foreign methods in the *DomainEvents* class and utilize the *EventQueue* class and *EventMonitor* thread alone.  Create as many instances of *EventMonitor* as you need.  Aside from the creation of *DomainEvent* and *EventHandler* implementations (those parts are the same, see steps #1 & #2 above), here's the way to use *EventMonitor* on its own:
 
 1. monitor = new EventMonitor()
 2. monitor.register(EventHandler) for each EventHandler implementation.
 3. monitor.start()
-4. monitor.raise(DomainEvent) in your domain logic.
+4. monitor.setReRaiseOnError(true)--optional.
+5. monitor.raise(Objet) in your domain logic.
    - repeat as necessary
-5. monitor.shutdown()
+6. monitor.shutdown()
 
 Release Notes
 =============
@@ -63,3 +63,5 @@ Release Notes
 
 ### 0.1.0
 Initial release.
+=======
+6. monitor.shutdown() at the end of your application, for each individual EventMonitor instance.
