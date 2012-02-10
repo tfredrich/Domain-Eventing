@@ -18,27 +18,25 @@ package com.strategicgains.eventing;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.strategicgains.eventing.domain.DomainEvent;
-
 /**
  * @author toddf
  * @since Feb 6, 2012
  */
 public class EventQueue
 {
-	private Queue<DomainEvent> eventQueue = new ConcurrentLinkedQueue<DomainEvent>();
+	private Queue<Object> eventQueue = new ConcurrentLinkedQueue<Object>();
 
 	public boolean isEmpty()
 	{
 		return eventQueue.isEmpty();
 	}
 
-	public DomainEvent poll()
+	public Object poll()
 	{
 		return eventQueue.poll();
 	}
 	
-	public void raise(DomainEvent event)
+	public void raise(Object event)
 	{
 		eventQueue.add(event);
 

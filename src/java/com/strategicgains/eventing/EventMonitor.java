@@ -20,8 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.strategicgains.eventing.domain.DomainEvent;
-
 /**
  * A thread that allows clients to raise events.  Registered event handlers
  * will be called for whatever event types each can process.
@@ -37,7 +35,7 @@ extends Thread
 	
 	// SECTION: INSTANCE METHODS
 
-	private Map<Class<? extends DomainEvent>, List<EventHandler>> handlersByEvent = new HashMap<Class<? extends DomainEvent>, List<EventHandler>>();
+	private Map<Class<?>, List<EventHandler>> handlersByEvent = new HashMap<Class<?>, List<EventHandler>>();
 	private List<EventHandler> handlers = new ArrayList<EventHandler>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
@@ -120,7 +118,7 @@ extends Thread
 				continue;
 			}
 
-			DomainEvent event = null;
+			Object event = null;
 
 			while ((event = eventQueue.poll()) != null)
 			{
@@ -158,7 +156,7 @@ extends Thread
 		handlersByEvent.clear();
     }
 
-	private List<EventHandler> getConsumersFor(Class<? extends DomainEvent> eventClass)
+	private List<EventHandler> getConsumersFor(Class<?> eventClass)
 	{
 		List<EventHandler> result = handlersByEvent.get(eventClass);
 		

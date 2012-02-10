@@ -12,8 +12,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.strategicgains.eventing.domain.DomainEvent;
-
 
 /**
  * @author toddf
@@ -153,7 +151,6 @@ public class DomainEventsTest
 	// SECTION: INNER CLASSES
 
 	private class HandledEvent
-	implements DomainEvent
 	{
 		public void kerBlooey()
 		{
@@ -177,12 +174,10 @@ public class DomainEventsTest
 	}
 	
 	private class IgnoredEvent
-	implements DomainEvent
 	{
 	}
 	
 	private class LongEvent
-	implements DomainEvent
 	{
 	}
 
@@ -192,7 +187,7 @@ public class DomainEventsTest
 		private int callCount = 0;
 
 		@Override
-		public void handle(DomainEvent event)
+		public void handle(Object event)
 		{
 			assert(HandledEvent.class.isAssignableFrom(event.getClass()));
 
@@ -206,7 +201,7 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public boolean handles(Class<? extends DomainEvent> eventClass)
+		public boolean handles(Class<?> eventClass)
 		{
 			if (HandledEvent.class.isAssignableFrom(eventClass))
 			{
@@ -223,7 +218,7 @@ public class DomainEventsTest
 		private int callCount = 0;
 
 		@Override
-		public void handle(DomainEvent event)
+		public void handle(Object event)
 		{
 			assert(event.getClass().equals(IgnoredEvent.class));
 			++callCount;
@@ -235,7 +230,7 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public boolean handles(Class<? extends DomainEvent> eventClass)
+		public boolean handles(Class<?> eventClass)
 		{
 			if (IgnoredEvent.class.isAssignableFrom(eventClass))
 			{
@@ -252,7 +247,7 @@ public class DomainEventsTest
 		private int callCount = 0;
 
 		@Override
-		public void handle(DomainEvent event)
+		public void handle(Object event)
 		{
 			assert(event.getClass().equals(LongEvent.class));
 			++callCount;
@@ -274,7 +269,7 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public boolean handles(Class<? extends DomainEvent> eventClass)
+		public boolean handles(Class<?> eventClass)
 		{
 			if (LongEvent.class.isAssignableFrom(eventClass))
 			{

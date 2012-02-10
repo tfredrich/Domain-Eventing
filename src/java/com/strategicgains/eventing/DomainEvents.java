@@ -18,8 +18,6 @@ package com.strategicgains.eventing;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.strategicgains.eventing.domain.DomainEvent;
-
 /**
  * DomainEvents defines a static public interface for raising and handling domain events.
  * Raising an event places it in an in-memory queue that is then handled asynchronously
@@ -83,7 +81,7 @@ public class DomainEvents
 	 * 
 	 * @param event the DomainEvent to raise.
 	 */
-	public static void raise(DomainEvent event)
+	public static void raise(Object event)
 	{
 		instance().raiseEvent(event);
 	}
@@ -199,7 +197,7 @@ public class DomainEvents
 	 * 
 	 * @param event
 	 */
-	private void raiseEvent(DomainEvent event)
+	private void raiseEvent(Object event)
 	{
 		eventQueue.raise(event);
 	}

@@ -15,7 +15,6 @@
 */
 package com.strategicgains.eventing;
 
-import com.strategicgains.eventing.domain.DomainEvent;
 
 
 /**
@@ -34,7 +33,7 @@ public interface EventHandler
 	 * 
 	 * @param event
 	 */
-	public void handle(DomainEvent event);
+	public void handle(Object event);
 	
 	/**
 	 * Answers whether this EventHandler can handle events of the given type.
@@ -44,5 +43,5 @@ public interface EventHandler
 	 * @param eventClass
 	 * @return
 	 */
-	public boolean handles(Class<? extends DomainEvent> eventClass);
+	public boolean handles(Class<?> eventClass);
 }
