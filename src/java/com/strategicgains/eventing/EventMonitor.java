@@ -61,7 +61,7 @@ extends Thread
 	
 	// SECTION: INSTANCE METHODS
 
-	public void register(EventHandler handler)
+	public synchronized void register(EventHandler handler)
 	{
 		if (!handlers.contains(handler))
 		{
@@ -71,7 +71,7 @@ extends Thread
 		handlersByEvent.clear();
 	}
 
-	public void unregister(EventHandler handler)
+	public synchronized void unregister(EventHandler handler)
 	{
 		if (handlers.remove(handler))
 		{
@@ -79,11 +79,15 @@ extends Thread
 		}
 	}
 
-	public synchronized void shutdown()
+	public void shutdown()
 	{
 		shouldShutDown = true;
 		System.out.println("Event monitor notified for shutdown.");
-		notify();
+
+		synchronized(eventQueue)
+		{
+			eventQueue.notifyAll();
+		}
 	}
 
 	public void setReRaiseOnError(boolean value)
@@ -107,14 +111,14 @@ extends Thread
 				{
 					if (eventQueue.isEmpty())
 					{
-						eventQueue.wait(delay);
+						eventQueue.wait(delay);		// Support wake-up via eventQueue.notify()
 					}
 				}
 			}
 			catch (InterruptedException e)
 			{
 				e.printStackTrace();
-				System.out.println("Interruped (use shutdown() to terminate).  Continuing...");
+				System.out.println("Interrupted (use shutdown() to terminate).  Continuing...");
 				continue;
 			}
 
@@ -122,30 +126,35 @@ extends Thread
 
 			while ((event = eventQueue.poll()) != null)
 			{
-				System.out.println("Processing event: " + event.toString());
-				for (EventHandler handler : getConsumersFor(event.getClass()))
-				{
-					try
-					{
-						handler.handle(event);
-					}
-					catch(Exception e)
-					{
-						e.printStackTrace();
-						
-						if (shouldReRaiseOnError)
-						{
-							System.out.println("Event handler failed. Re-publishing event: " + event.toString());
-							eventQueue.raise(event);
-						}
-					}
-				}
+				processEvent(event);
 			}
 		}
 		
 		System.out.println("Event monitor exiting...");
 		clearAllHandlers();
 	}
+
+	private void processEvent(Object event)
+    {
+	    System.out.println("Processing event: " + event.toString());
+	    for (EventHandler handler : getConsumersFor(event.getClass()))
+	    {
+	    	try
+	    	{
+	    		handler.handle(event);
+	    	}
+	    	catch(Exception e)
+	    	{
+	    		e.printStackTrace();
+	    		
+	    		if (shouldReRaiseOnError)
+	    		{
+	    			System.out.println("Event handler failed. Re-publishing event: " + event.toString());
+	    			eventQueue.raise(event);
+	    		}
+	    	}
+	    }
+    }
 
 	
 	// SECTION: UTILITY - PRIVATE
@@ -156,7 +165,7 @@ extends Thread
 		handlersByEvent.clear();
     }
 
-	private List<EventHandler> getConsumersFor(Class<?> eventClass)
+	private synchronized List<EventHandler> getConsumersFor(Class<?> eventClass)
 	{
 		List<EventHandler> result = handlersByEvent.get(eventClass);
 		
