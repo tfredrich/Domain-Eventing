@@ -32,7 +32,9 @@ import java.util.List;
  * <li>Implement EventHandler sub-class(es) for processing the events, overriding the handles(Class)
  * method to describe which DomainEvent sub-types the handler can process.</li>
  * <li>DomainEvents.register(new <EventHandlerSubType>()); // In main() or startup for each EventHandler.</li>
+ * <li>DomainEvents.startMonitoring(); // In main() when ready to process events.
  * <li>Call DomainEvents.raise(new DomainEventSubType()) wherever domain events should be raised.
+ * <li>DomainEvents.stopMonitoring(); // On application shutdown (e.g. in main()).
  * </ol>
  * 
  * All raised DomainEvent instances are handled asynchronously, in a separate Thread, which is
