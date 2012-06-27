@@ -13,10 +13,9 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
  */
-package com.strategicgains.eventing.distributed;
+package com.strategicgains.eventing;
 
 import com.hazelcast.core.Hazelcast;
-import com.strategicgains.eventing.EventQueue;
 
 /**
  * Leverages Hazelcast to create a distrubuted EventQueue implementation
@@ -28,6 +27,8 @@ import com.strategicgains.eventing.EventQueue;
 public class DistributedEventQueue
 extends EventQueue
 {
+	//TODO: Support Hazelcast configuration
+
 	public DistributedEventQueue()
 	{
 		super(Hazelcast.getQueue("domain-events"));

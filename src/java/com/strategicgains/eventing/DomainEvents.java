@@ -18,7 +18,6 @@ package com.strategicgains.eventing;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.strategicgains.eventing.distributed.DistributedEventQueue;
 
 /**
  * DomainEvents defines a static public interface for raising and handling domain events.
@@ -34,6 +33,7 @@ import com.strategicgains.eventing.distributed.DistributedEventQueue;
  * <li>Implement EventHandler sub-class(es) for processing the events, overriding the handles(Class)
  * method to describe which DomainEvent sub-types the handler can process.</li>
  * <li>DomainEvents.register(new <EventHandlerSubType>()); // In main() or startup for each EventHandler.</li>
+ * <li>(optional) DomainEvents.useDistributedEvents(); // Before startMonitoring() called to support eventing within a cluster.
  * <li>DomainEvents.startMonitoring(); // In main() when ready to process events.
  * <li>Call DomainEvents.raise(new DomainEventSubType()) wherever domain events should be raised.
  * <li>DomainEvents.stopMonitoring(); // On application shutdown (e.g. in main()).
@@ -216,6 +216,8 @@ public class DomainEvents
 		
 		unregisterHandlers(REGISTERED_HANDLERS);
 		isStarted = false;
+		
+		// TODO: shutdown Hazelcast cluster, if applicable.
 	}
 
 	/**
