@@ -49,7 +49,7 @@ public class DomainEvents
 
 	private static final int DEFAULT_DOMAIN_EVENT_WORKERS = 1;
 	private static final DomainEvents INSTANCE = new DomainEvents();
-	private static final List<EventHandler> registeredHandlers = new ArrayList<EventHandler>();
+	private static final List<EventHandler> REGISTERED_HANDLERS = new ArrayList<EventHandler>();
 
 	
 	// SECTION: INSTANCE VARIABLES
@@ -151,7 +151,7 @@ public class DomainEvents
 	 */
 	public static void register(EventHandler handler)
 	{
-		registeredHandlers.add(handler);
+		REGISTERED_HANDLERS.add(handler);
 		instance().registerHandler(handler);
 	}
 
@@ -162,7 +162,7 @@ public class DomainEvents
 	 */
 	public static void unregister(EventHandler handler)
 	{
-		registeredHandlers.remove(handler);
+		REGISTERED_HANDLERS.remove(handler);
 		instance().unregisterHandler(handler);
 	}
 
@@ -180,7 +180,7 @@ public class DomainEvents
 		}
 		
 		isStarted = true;
-		registerHandlers(registeredHandlers);
+		registerHandlers(REGISTERED_HANDLERS);
 	}
 	
 	private void stopEventMonitors()
@@ -190,7 +190,7 @@ public class DomainEvents
 			eventMonitor.shutdown();
 		}
 		
-		unregisterHandlers(registeredHandlers);
+		unregisterHandlers(REGISTERED_HANDLERS);
 		isStarted = false;
 	}
 
