@@ -18,6 +18,8 @@ package com.strategicgains.eventing;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.strategicgains.eventing.distributed.DistributedEventQueue;
+
 /**
  * DomainEvents defines a static public interface for raising and handling domain events.
  * Raising an event places it in an in-memory queue that is then handled asynchronously
@@ -55,9 +57,10 @@ public class DomainEvents
 	// SECTION: INSTANCE VARIABLES
 
 	private EventMonitor[] eventMonitors;
-	private EventQueue eventQueue = new EventQueue();
+	private EventQueue eventQueue;
 	private int eventWorkerCount = DEFAULT_DOMAIN_EVENT_WORKERS;
 	private boolean isStarted = false;
+	private boolean isDistributedEventing = false;
 	
 	// SECTION: CONSTRUCTOR
 
@@ -138,6 +141,26 @@ public class DomainEvents
 	{
 		instance().stopEventMonitors();
 	}
+	
+	public static void useDistributedEventing()
+	{
+		setUseDistributedEventing(true);
+	}
+	
+	public static void useLocalEventing()
+	{
+		setUseDistributedEventing(false);
+	}
+
+	public static void setUseDistributedEventing(boolean value)
+	{
+		instance().setIsDistributedEventing(value);
+	}
+	
+	public static boolean isUsingDistributedEventing()
+	{
+		return instance().isDistributedEventing();
+	}
 
 	/**
 	 * Register an EventHandler for notification when DomainEvent are raised.
@@ -171,6 +194,7 @@ public class DomainEvents
 
 	private void startEventMonitors()
 	{
+		createEventQueue();
 		eventMonitors = new EventMonitor[getEventWorkerCount()];
 		
 		for (int i = 0; i < getEventWorkerCount(); ++i)
@@ -282,5 +306,27 @@ public class DomainEvents
 	private void setEventWorkerCount(int value)
 	{
 		this.eventWorkerCount = value;
+	}
+	
+	private void setIsDistributedEventing(boolean value)
+	{
+		this.isDistributedEventing = value;
+	}
+	
+	private boolean isDistributedEventing()
+	{
+		return isDistributedEventing;
+	}
+
+	private void createEventQueue()
+	{
+		if (isDistributedEventing())
+		{
+			eventQueue = new DistributedEventQueue();
+		}
+		else
+		{
+			eventQueue = new LocalEventQueue();
+		}
 	}
 }

@@ -12,42 +12,20 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
- */
+*/
 package com.strategicgains.eventing;
 
-import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author toddf
- * @since Jun 27, 2012
+ * @since Feb 6, 2012
  */
-public class EventQueue
+public class LocalEventQueue
+extends EventQueue
 {
-	private Queue<Object> eventQueue;
-	
-	public EventQueue(Queue<Object> queueImpl)
+	public LocalEventQueue()
 	{
-		super();
-		this.eventQueue = queueImpl;
-	}
-
-    public boolean isEmpty()
-	{
-		return eventQueue.isEmpty();
-	}
-
-    public Object poll()
-	{
-		return eventQueue.poll();
-	}
-	
-    public void raise(Object event)
-	{
-		eventQueue.add(event);
-
-		synchronized (this)
-		{
-			notify();
-		}
+		super(new ConcurrentLinkedQueue<Object>());
 	}
 }

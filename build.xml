@@ -5,7 +5,6 @@
 	<property file="build.properties"/>
 	<property name="dir.src.java" value="${basedir}/src/java"/>
 	<property name="dir.src.test" value="${basedir}/test/java"/>
-	<property name="dir.src.kickstart" value="${basedir}/examples/kickstart"/>
 	<property name="dir.build" value="${basedir}/build"/>
 	<property name="dir.compile" value="${dir.build}/classes/main"/>
 	<property name="dir.compile.test" value="${dir.build}/classes/test"/>
@@ -124,7 +123,7 @@
     		<fileset dir="${dir.src.java}"/>
     	</jar>
 		<zip destfile="${dir.dist}/${ant.project.name}-${version}-${build.number}-deps.zip">
-    		<zipfileset dir="${dir.lib}" prefix="domain-eventing/lib" excludes="**/*"/>
+    		<zipfileset dir="${dir.lib}" prefix="domain-eventing/lib" excludes="junit/"/>
     		<zipfileset dir="${dir.dist}" includes="*.jar" excludes="*-src.jar" prefix="domain-eventing/lib"/>
     	</zip>
     </target>

@@ -1,6 +1,7 @@
 Overview
 ========
-Domain-Eventing implements the Domain Events concept from Eric Evans' Domain Driven Design.
+Domain-Eventing implements the Domain Events concept from Eric Evans' Domain Driven Design.  Enables simple messaging
+for domain models within a single JVM.
 
 This simple Java library provides a Singleton interface (see DomainEvents class) to an EventMonitor thread and a simple
 way to raise events (which are just POJOs) throughout the domain layer.
@@ -8,6 +9,13 @@ way to raise events (which are just POJOs) throughout the domain layer.
 Event handlers simply implement the EventHandler interface, which has two methods, handle(Object) and handles(Class).
 The handle() method is the implementation for dealing with the domain event and handles() returns a boolean indicating
 whether that particular EventHandler can process the given class.
+
+Why Domain Eventing Instead of Messaging or ESB?
+================================================
+Messaging systems or ESB (Enterprise Service Bus) is very heavy and resource intensive. Small, quick, inter-application
+messages don't usually need to be broadcast enterprise wide.  For instance, within an eventual-consistency database
+model, cascade deletes may occur asynchronously, outside of the request.  This is a great candidate for inter-application
+eventing instead of leveraging a full-up JMS or other messaging system.
 
 Event Flow
 ==========
@@ -61,6 +69,7 @@ BTW, the above process is the same the DomainEvents manages for you.
 Release Notes
 =============
 ### 0.3.0 - Under development (branch 'master')
+* Introduced HazelCast for seamless intra-cluster (cross-node, multi-JVM) domain eventing.
 
 ### 0.2.0 - June 27, 2012
 * Removed constraint of having to implement DomainEvent marker interface in event messages.
