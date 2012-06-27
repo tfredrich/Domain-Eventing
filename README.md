@@ -60,7 +60,7 @@ BTW, the above process is the same the DomainEvents manages for you.
 
 Release Notes
 =============
-### 0.2.0 - under development
+### 0.2.0 - June 27, 2012
 * Removed constraint of having to implement DomainEvent marker interface in event messages.
 * Introduced EventQueue, allowing multiple EventMonitor threads to be processing events from the queue simultaneously.
 
