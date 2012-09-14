@@ -19,7 +19,7 @@ import com.hazelcast.core.Hazelcast;
 
 /**
  * Leverages Hazelcast to create a distrubuted EventQueue implementation
- * to support instra-cluster eventing.
+ * to support intra-cluster eventing.
  * 
  * @author toddf
  * @since Jun 27, 2012

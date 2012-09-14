@@ -32,8 +32,10 @@ public interface EventHandler
 	 * Process the given event. Called by the EventMonitor when an event occurs.
 	 * 
 	 * @param event
+	 * @throws Exception if something goes wrong
 	 */
-	public void handle(Object event);
+	public void handle(Object event)
+	throws Exception;
 	
 	/**
 	 * Answers whether this EventHandler can handle events of the given type.
