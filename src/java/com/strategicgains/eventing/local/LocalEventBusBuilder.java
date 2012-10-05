@@ -27,8 +27,8 @@ import com.strategicgains.eventing.EventBusBuilder;
  * @author toddf
  * @since Oct 4, 2012
  */
-public class LocalEventBusBuilder
-implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
+public class LocalEventBusBuilder<T>
+implements EventBusBuilder<LocalEventBus<T>, LocalEventBusBuilder<T>>
 {
 	private static final long DEFAULT_POLL_DELAY = 0L;
 
@@ -42,27 +42,27 @@ implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
 	}
 
 	@Override
-	public LocalEventBus build()
+	public LocalEventBus<T> build()
 	{
 		assert(!subscribers.isEmpty());
 
-		return new LocalEventBus(subscribers, shouldReraiseOnError, pollDelay);
+		return new LocalEventBus<T>(subscribers, shouldReraiseOnError, pollDelay);
 	}
 
-    public LocalEventBusBuilder shouldReraiseOnError(boolean value)
+    public LocalEventBusBuilder<T> shouldReraiseOnError(boolean value)
     {
     	this.shouldReraiseOnError = value;
 	    return this;
     }
     
-    public LocalEventBusBuilder pollDelay(long millis)
+    public LocalEventBusBuilder<T> pollDelay(long millis)
     {
     	this.pollDelay = millis;
     	return this;
     }
 
     @Override
-    public LocalEventBusBuilder subscribe(EventHandler handler)
+    public LocalEventBusBuilder<T> subscribe(EventHandler handler)
     {
     	if (!subscribers.contains(handler))
     	{

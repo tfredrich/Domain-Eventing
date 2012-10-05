@@ -25,14 +25,14 @@ import com.strategicgains.eventing.EventBus;
  * @author toddf
  * @since Feb 6, 2012
  */
-public class LocalEventBus
-extends EventBus
+public class LocalEventBus<T>
+extends EventBus<T>
 {
-	private EventMonitor monitor;
+	private EventMonitor<T> monitor;
 
 	public LocalEventBus(List<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
 	{
-		super(new ConcurrentLinkedQueue<Object>());
+		super(new ConcurrentLinkedQueue<T>());
 		initializeMonitor(handlers, shouldReraiseOnError, pollDelayMillis);
 	}
 
@@ -41,7 +41,7 @@ extends EventBus
 	 */
 	private void initializeMonitor(List<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
 	{
-		this.monitor = new EventMonitor(this, pollDelayMillis);
+		this.monitor = new EventMonitor<T>(this, pollDelayMillis);
 
 		for (EventHandler handler : handlers)
 		{

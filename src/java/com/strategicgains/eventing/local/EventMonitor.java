@@ -32,12 +32,12 @@ import com.strategicgains.eventing.EventBus;
  * @author toddf
  * @since May 17, 2011
  */
-public class EventMonitor
+public class EventMonitor<T>
 extends Thread
 {
 	// SECTION: CONSTANTS
 
-	private static final Executor eventExecutor = Executors.newCachedThreadPool();
+	private static final Executor EVENT_EXECUTOR = Executors.newCachedThreadPool();
 
 	
 	// SECTION: INSTANCE METHODS
@@ -46,13 +46,13 @@ extends Thread
 	private List<EventHandler> handlers = new ArrayList<EventHandler>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
-	private EventBus eventQueue;
+	private EventBus<T> eventQueue;
 	private long delay;
 
 
 	// SECTION: CONSTRUCTORS
 
-	public EventMonitor(EventBus queue, long pollDelayMillis)
+	public EventMonitor(EventBus<T> queue, long pollDelayMillis)
 	{
 		super();
 		setDaemon(true);
@@ -127,7 +127,7 @@ extends Thread
 				continue;
 			}
 
-			Object event = null;
+			T event = null;
 
 			while ((event = eventQueue.poll()) != null)
 			{
@@ -139,12 +139,12 @@ extends Thread
 		clearAllHandlers();
 	}
 
-	private void processEvent(final Object event)
+	private void processEvent(final T event)
     {
 	    System.out.println("Processing event: " + event.toString());
 	    for (final EventHandler handler : getConsumersFor(event.getClass()))
 	    {
-    		eventExecutor.execute(new Runnable(){
+    		EVENT_EXECUTOR.execute(new Runnable(){
 				@Override
                 public void run()
                 {
@@ -159,7 +159,7 @@ extends Thread
 			    		if (shouldReRaiseOnError)
 			    		{
 			    			System.out.println("Event handler failed. Re-publishing event: " + event.toString());
-			    			eventQueue.raise(event);
+			    			eventQueue.publish(event);
 			    		}
 			    	}
                 }

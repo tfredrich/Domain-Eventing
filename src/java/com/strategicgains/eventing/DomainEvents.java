@@ -28,7 +28,8 @@ import com.strategicgains.eventing.local.LocalEventBusBuilder;
  * by an EventMonitor.
  * <p/>
  * Domain events are publish-subscribe, where when an event is raised, all appropriate
- * EventHandler instances are notified of that event.
+ * EventHandler instances are notified of an event, if they have subscribed and handles() returns
+ * true for the given event class.
  * <p/>
  * To utilize domain events in your application:
  * <ol>
@@ -82,7 +83,7 @@ public class DomainEvents
 	 * 
 	 * @return LocalEventBusBuilder
 	 */
-	public static LocalEventBusBuilder newLocalBusBuilder()
+	public static LocalEventBusBuilder newLocalEventBus()
 	{
 		return new LocalEventBusBuilder();
 	}
@@ -92,7 +93,7 @@ public class DomainEvents
 	 * 
 	 * @return DistributedEventBusBuilder
 	 */
-	public static DistributedEventBusBuilder newDistributedBusBuilder()
+	public static DistributedEventBusBuilder newDistributedEventBus()
 	{
 		return new DistributedEventBusBuilder();
 	}
@@ -108,7 +109,7 @@ public class DomainEvents
 		instance().publishEvent(event);
 	}
 
-	public static boolean addQueue(EventBus queue)
+	public static boolean addBus(EventBus queue)
 	{
 		return instance().addEventQueue(queue);
 	}
@@ -143,7 +144,7 @@ public class DomainEvents
 
 		for (EventBus eventQueue : eventBusses)
 		{
-			eventQueue.raise(event);
+			eventQueue.publish(event);
 		}
 	}
 

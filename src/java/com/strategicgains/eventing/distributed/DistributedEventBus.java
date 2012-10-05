@@ -15,36 +15,55 @@
  */
 package com.strategicgains.eventing.distributed;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.ITopic;
 import com.strategicgains.eventing.EventBus;
 import com.strategicgains.eventing.EventHandler;
 
 /**
- * Leverages Hazelcast to create a distrubuted EventQueue implementation
- * to support intra-cluster eventing.
+ * Leverages Hazelcast to create a distrubuted EventQueue implementation to
+ * support intra-cluster eventing.
  * 
  * @author toddf
  * @since Jun 27, 2012
  */
-public class DistributedEventBus
-extends EventBus
+public class DistributedEventBus<T extends Serializable>
+extends EventBus<T>
 {
-	public DistributedEventBus(String queueName)
+	public DistributedEventBus(String queueName, List<EventHandler> subscribers)
 	{
-		super(Hazelcast.getQueue(queueName));
+		super(new HazelcastTopicQueueAdapter<T>(Hazelcast.getTopic(queueName)));
+		addSubscribers(queueName, subscribers);
 	}
 
-	public DistributedEventBus(String queueName, Config config, List<EventHandler> subscribers)
+	public DistributedEventBus(String queueName, Config config,
+	    List<EventHandler> subscribers)
 	{
-		super(Hazelcast.init(config).getQueue(queueName));
+		super(new HazelcastTopicQueueAdapter<T>(Hazelcast.init(config).getTopic(queueName)));
+		addSubscribers(queueName, subscribers);
 	}
 
-    @Override
-    public void shutdown()
-    {
-    	Hazelcast.shutdownAll();
-    }
+	@Override
+	public void shutdown()
+	{
+		Hazelcast.shutdownAll();
+	}
+
+	/**
+	 * @param queueName the name of the event bus.
+	 * @param subscribers a List of EventHandler instances that subscribed to the event bus.
+	 */
+	private void addSubscribers(String queueName, List<EventHandler> subscribers)
+	{
+		ITopic<Object> t = Hazelcast.getTopic(queueName);
+
+		for (EventHandler handler : subscribers)
+		{
+			t.addMessageListener(new EventHandlerAdapter(handler));
+		}
+	}
 }

@@ -12,44 +12,25 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
- */
-package com.strategicgains.eventing;
-
-import java.util.Queue;
+*/
+package com.strategicgains.eventing.distributed;
 
 /**
  * @author toddf
- * @since Jun 27, 2012
+ * @since Oct 5, 2012
  */
-public abstract class EventBus<T>
+public class ErroredEvent
+extends HandledEvent
 {
-	private Queue<T> eventQueue;
+    private static final long serialVersionUID = -2659798178870960451L;
+	private int occurrences = 0;
 
-	public EventBus(Queue<T> queueImpl)
+	@Override
+	public void kerBlooey()
 	{
-		super();
-		this.eventQueue = queueImpl;
-	}
-
-	public boolean isEmpty()
-	{
-		return eventQueue.isEmpty();
-	}
-
-	public T poll()
-	{
-		return eventQueue.poll();
-	}
-
-	public void publish(T event)
-	{
-		eventQueue.add(event);
-
-		synchronized (this)
+		if (occurrences++ < 5)
 		{
-			notify();
+			throw new RuntimeException("KER-BLOOEY!");
 		}
 	}
-	
-	public abstract void shutdown();
 }

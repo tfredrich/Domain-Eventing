@@ -13,9 +13,11 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
  */
-package com.strategicgains.eventing.local;
+package com.strategicgains.eventing.distributed;
 
 import static org.junit.Assert.assertEquals;
+
+import java.io.Serializable;
 
 import org.junit.After;
 import org.junit.Before;
@@ -27,17 +29,17 @@ import com.strategicgains.eventing.EventHandler;
  * @author toddf
  * @since Oct 4, 2012
  */
-public class LocalEventBusBuilderTest
+public class DistributedEventBusBuilderTest
 {
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-	private LocalEventBus<Object> queue;
+	private DistributedEventBus<Serializable> queue;
 
 	@Before
 	public void setup()
 	{
-		queue = new LocalEventBusBuilder<Object>()
+		queue = new DistributedEventBusBuilder<Serializable>()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
@@ -78,7 +80,7 @@ public class LocalEventBusBuilderTest
 		queue.publish(new IgnoredEvent());
 		queue.publish(new HandledEvent());
 		queue.publish(new IgnoredEvent());
-		Thread.sleep(5);
+		Thread.sleep(50);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -90,28 +92,9 @@ public class LocalEventBusBuilderTest
 	{
 		assertEquals(0, ignoredHandler.getCallCount());
 		queue.publish(new IgnoredEvent());
-		Thread.sleep(5);
+		Thread.sleep(50);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(1, ignoredHandler.getCallCount());
-		assertEquals(0, longHandler.getCallCount());
-	}
-
-	@Test
-	public void shouldRetryEventHandler()
-	throws Exception
-	{
-		queue = new LocalEventBusBuilder<Object>()
-			.shouldReraiseOnError(true)
-			.subscribe(handler)
-			.subscribe(ignoredHandler)
-			.subscribe(longHandler)
-		    .build();
-
-		assertEquals(0, handler.getCallCount());
-		queue.publish(new ErroredEvent());
-		Thread.sleep(50);
-		assertEquals(6, handler.getCallCount());
-		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
 	}
 
@@ -146,38 +129,7 @@ public class LocalEventBusBuilderTest
 
 	
 	// SECTION: INNER CLASSES
-
-	private class HandledEvent
-	{
-		public void kerBlooey()
-		{
-			// do nothing.
-		}
-	}
 	
-	private class ErroredEvent
-	extends HandledEvent
-	{
-		private int occurrences = 0;
-
-		@Override
-		public void kerBlooey()
-		{
-			if (occurrences++ < 5)
-			{
-				throw new RuntimeException("KER-BLOOEY!");
-			}
-		}
-	}
-	
-	private class IgnoredEvent
-	{
-	}
-	
-	private class LongEvent
-	{
-	}
-
 	private static class DomainEventsTestHandler
 	implements EventHandler
 	{

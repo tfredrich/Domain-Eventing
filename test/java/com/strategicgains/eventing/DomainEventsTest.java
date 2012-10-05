@@ -38,12 +38,12 @@ public class DomainEventsTest
 	@Before
 	public void setup()
 	{
-		EventBus q = new LocalEventBusBuilder()
+		EventBus<Object> q = new LocalEventBusBuilder<Object>()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
 			.build();
-		DomainEvents.addQueue(q);
+		DomainEvents.addBus(q);
 	}
 	
 	@After

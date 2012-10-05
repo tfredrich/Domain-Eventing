@@ -15,6 +15,7 @@
  */
 package com.strategicgains.eventing.distributed;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,8 +27,8 @@ import com.strategicgains.eventing.EventHandler;
  * @author toddf
  * @since Oct 5, 2012
  */
-public class DistributedEventBusBuilder
-implements EventBusBuilder<DistributedEventBus, DistributedEventBusBuilder>
+public class DistributedEventBusBuilder<T extends Serializable>
+implements EventBusBuilder<DistributedEventBus<T>, DistributedEventBusBuilder<T>>
 {
 	private static final String DEFAULT_QUEUE_NAME = "domain-events";
 
@@ -40,8 +41,21 @@ implements EventBusBuilder<DistributedEventBus, DistributedEventBusBuilder>
 		super();
 	}
 
+	/**
+	 * Very 'thin' (as in not at all) veneer to set underlying Hazelcast configuration.
+	 * Yes, this exposes the underlying implementation.  Bummer.
+	 * 
+	 * @param configuration Hazelcast Config instance.
+	 * @return this builder to facilitate method chainging.
+	 */
+	public DistributedEventBusBuilder<T> setConfiguration(Config configuration)
+	{
+		this.config = configuration;
+		return this;
+	}
+	
     @Override
-    public DistributedEventBusBuilder subscribe(EventHandler handler)
+    public DistributedEventBusBuilder<T> subscribe(EventHandler handler)
     {
     	if (!subscribers.contains(handler))
     	{
@@ -52,8 +66,8 @@ implements EventBusBuilder<DistributedEventBus, DistributedEventBusBuilder>
     }
 
 	@Override
-	public DistributedEventBus build()
+	public DistributedEventBus<T> build()
 	{
-		return new DistributedEventBus(queueName, config, subscribers);
+		return (config == null ? new DistributedEventBus<T>(queueName, subscribers) : new DistributedEventBus<T>(queueName, config, subscribers));
 	}
 }
