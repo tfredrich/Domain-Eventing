@@ -4,24 +4,27 @@
 	<property environment="env"/>
 	<property file="build.properties"/>
 	<property name="dir.src.java" value="${basedir}/src/java"/>
-	<property name="dir.src.test" value="${basedir}/test/java"/>
+	<property name="dir.src.common" value="${dir.src.java}/common"/>
+	<property name="dir.test.java" value="${basedir}/test/java"/>
+	<property name="dir.test.common" value="${dir.test.java}/common"/>
 	<property name="dir.build" value="${basedir}/build"/>
-	<property name="dir.compile" value="${dir.build}/classes/main"/>
-	<property name="dir.compile.test" value="${dir.build}/classes/test"/>
+	<property name="dir.compile" value="${dir.build}/classes"/>
+	<property name="dir.compile.common" value="${dir.compile}/common"/>
+	<property name="dir.compile.test" value="${dir.compile}/test"/>
 	<property name="dir.lib" value="${basedir}/lib"/>
 	<property name="dir.dist" value="${basedir}/dist"/>
 	<property name="dir.test.results" value="${dir.build}/junit"/>
 	<property name="dir.test.report" value="${dir.test.results}/report"/>
 
 	<path id="compile.classpath">
-		<pathelement location="${dir.compile}"/>
+		<pathelement location="${dir.compile.common}"/>
 		<fileset dir="${dir.lib}">
 			<include name="**/*.jar"/>
 		</fileset>
     </path>
 
 	<path id="runtime.classpath">
-		<pathelement location="${dir.compile}"/>
+		<pathelement location="${dir.compile.common}"/>
 		<fileset dir="${dir.lib}">
 			<include name="**/*.jar"/>
 			<exclude name="**/sources/*"/>
@@ -35,6 +38,7 @@
 
     <target name="_init">
 		<mkdir dir="${dir.compile}"/>
+		<mkdir dir="${dir.compile.common}"/>
 		<mkdir dir="${dir.compile.test}"/>
 		<mkdir dir="${dir.dist}"/>
     </target>
@@ -48,7 +52,7 @@
           target: compile
          ====================================================================== -->
     <target name="compile"  depends="_init">
-		<javac destdir="${dir.compile}"
+		<javac destdir="${dir.compile.common}"
 			failonerror="yes"
 			fork="yes"
     		source="${javac.source}"
@@ -57,7 +61,7 @@
 				<path refid="compile.classpath"/>
 			</classpath>
 			<src>
-				<pathelement location="${dir.src.java}"/>
+				<pathelement location="${dir.src.common}"/>
 			</src>
 		</javac>
     	
@@ -70,7 +74,7 @@
 				<path refid="compile.classpath"/>
 			</classpath>
 			<src>
-				<pathelement location="${dir.src.test}"/>
+				<pathelement location="${dir.test.common}"/>
 			</src>
 		</javac>
     </target>
@@ -88,14 +92,14 @@
 	<!-- ====================================================================== 
           target: unit-test
          ====================================================================== -->
-    <target name="unit-test" depends="_init, compile" description="--> Execute RestExpress unit tests">
+    <target name="unit-test" depends="_init, compile" description="--> Execute domain-eventing unit tests">
         <delete dir="${dir.test.results}"/>
     	<mkdir dir="${dir.test.results}"/>
     	<junit printsummary="true">
     		<classpath refid="unit_test.classpath"/>
     		<formatter type="xml" usefile="true"/>
     		<batchtest errorproperty="test.failure" failureproperty="test.failure" fork="yes" todir="${dir.test.results}">
-    			<fileset dir="${dir.src.test}">
+    			<fileset dir="${dir.test.common}">
     				<include name="**/*Test.java"/>
     				<include name="**/*TestCase.java"/>
     			</fileset>
@@ -117,14 +121,14 @@
     <target name="release" depends="_init, compile" description="Release a distro">
 		<buildnumber/>
 		<jar destfile="${dir.dist}/${ant.project.name}-${version}-${build.number}.jar">
-    		<fileset dir="${dir.compile}"/>
+    		<fileset dir="${dir.compile.common}"/>
     	</jar>
 		<jar destfile="${dir.dist}/${ant.project.name}-${version}-${build.number}-src.jar">
-    		<fileset dir="${dir.src.java}"/>
+    		<fileset dir="${dir.src.common}"/>
     	</jar>
 		<zip destfile="${dir.dist}/${ant.project.name}-${version}-${build.number}-deps.zip">
-    		<zipfileset dir="${dir.lib}" prefix="domain-eventing/lib" excludes="junit/"/>
-    		<zipfileset dir="${dir.dist}" includes="*.jar" excludes="*-src.jar" prefix="domain-eventing/lib"/>
+    		<zipfileset dir="${dir.lib}" excludes="junit/"/>
+    		<zipfileset dir="${dir.dist}" includes="*.jar" excludes="*-src.jar"/>
     	</zip>
     </target>
 
