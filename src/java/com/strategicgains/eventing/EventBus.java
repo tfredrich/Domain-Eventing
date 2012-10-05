@@ -13,35 +13,43 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
  */
-package com.strategicgains.eventing.distributed;
+package com.strategicgains.eventing;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.strategicgains.eventing.EventQueue;
+import java.util.Queue;
 
 /**
- * Leverages Hazelcast to create a distrubuted EventQueue implementation
- * to support intra-cluster eventing.
- * 
  * @author toddf
  * @since Jun 27, 2012
  */
-public class DistributedEventQueue
-extends EventQueue
+public abstract class EventBus
 {
-	public DistributedEventQueue(String queueName)
+	private Queue<Object> eventQueue;
+
+	public EventBus(Queue<Object> queueImpl)
 	{
-		super(Hazelcast.getQueue(queueName));
+		super();
+		this.eventQueue = queueImpl;
 	}
 
-	public DistributedEventQueue(String queueName, Config config)
+	public boolean isEmpty()
 	{
-		super(Hazelcast.init(config).getQueue(queueName));
+		return eventQueue.isEmpty();
 	}
 
-    @Override
-    public void shutdown()
-    {
-    	Hazelcast.shutdownAll();
-    }
+	public Object poll()
+	{
+		return eventQueue.poll();
+	}
+
+	public void raise(Object event)
+	{
+		eventQueue.add(event);
+
+		synchronized (this)
+		{
+			notify();
+		}
+	}
+	
+	public abstract void shutdown();
 }

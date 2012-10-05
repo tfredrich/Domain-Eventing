@@ -12,44 +12,15 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
- */
+*/
 package com.strategicgains.eventing;
-
-import java.util.Queue;
 
 /**
  * @author toddf
- * @since Jun 27, 2012
+ * @since Oct 4, 2012
  */
-public abstract class EventQueue
+public interface EventBusBuilder<T  extends EventBus, B>
 {
-	private Queue<Object> eventQueue;
-
-	public EventQueue(Queue<Object> queueImpl)
-	{
-		super();
-		this.eventQueue = queueImpl;
-	}
-
-	public boolean isEmpty()
-	{
-		return eventQueue.isEmpty();
-	}
-
-	public Object poll()
-	{
-		return eventQueue.poll();
-	}
-
-	public void raise(Object event)
-	{
-		eventQueue.add(event);
-
-		synchronized (this)
-		{
-			notify();
-		}
-	}
-	
-	public abstract void shutdown();
+	public B subscribe(EventHandler handler);
+	public T build();
 }

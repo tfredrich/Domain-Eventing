@@ -18,6 +18,9 @@ package com.strategicgains.eventing;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.strategicgains.eventing.distributed.DistributedEventBusBuilder;
+import com.strategicgains.eventing.local.LocalEventBusBuilder;
+
 
 /**
  * DomainEvents defines a static public interface for raising and handling domain events.
@@ -27,11 +30,10 @@ import java.util.List;
  * Domain events are publish-subscribe, where when an event is raised, all appropriate
  * EventHandler instances are notified of that event.
  * <p/>
- * To utilize domain events in your applications:
+ * To utilize domain events in your application:
  * <ol>
- * <li>Implement DomainEvent sub-class(es) to represent each event type.</li>
  * <li>Implement EventHandler sub-class(es) for processing the events, overriding the handles(Class)
- * method to describe which DomainEvent sub-types the handler can process.</li>
+ * method to describe which event types the handler can process.</li>
  * <li>DomainEvents.register(new <EventHandlerSubType>()); // In main() or startup for each EventHandler.</li>
  * <li>(optional) DomainEvents.useDistributedEvents(); // Before startMonitoring() called to support eventing within a cluster.
  * <li>DomainEvents.startMonitoring(); // In main() when ready to process events.
@@ -54,7 +56,7 @@ public class DomainEvents
 	
 	// SECTION: INSTANCE VARIABLES
 
-	private List<EventQueue> eventQueues = new ArrayList<EventQueue>();
+	private List<EventBus> eventBusses = new ArrayList<EventBus>();
 
 
 	// SECTION: CONSTRUCTOR
@@ -74,19 +76,39 @@ public class DomainEvents
 	{
 		return INSTANCE;
 	}
-
+	
 	/**
-	 * Raise an event, passing it to applicable consumers synchronously.  This method is
-	 * equivalent to calling instance().raiseEvent(DomainEvent).
+	 * Construct a new Local event bus builder.
 	 * 
-	 * @param event the DomainEvent to raise.
+	 * @return LocalEventBusBuilder
 	 */
-	public static void raise(Object event)
+	public static LocalEventBusBuilder newLocalBusBuilder()
 	{
-		instance().raiseEvent(event);
+		return new LocalEventBusBuilder();
+	}
+	
+	/**
+	 * Construct a new Distributed event bus builder.
+	 * 
+	 * @return DistributedEventBusBuilder
+	 */
+	public static DistributedEventBusBuilder newDistributedBusBuilder()
+	{
+		return new DistributedEventBusBuilder();
 	}
 
-	public static boolean addQueue(EventQueue queue)
+	/**
+	 * Publish an event, passing it to applicable consumers asynchronously.  This method is
+	 * equivalent to calling instance().publishEvent(Object).
+	 * 
+	 * @param event the Object as an event to publish.
+	 */
+	public static void publish(Object event)
+	{
+		instance().publishEvent(event);
+	}
+
+	public static boolean addQueue(EventBus queue)
 	{
 		return instance().addEventQueue(queue);
 	}
@@ -99,11 +121,11 @@ public class DomainEvents
 
 	// SECTION: INSTANCE METHODS
 
-	private boolean addEventQueue(EventQueue queue)
+	private boolean addEventQueue(EventBus queue)
 	{
-		if (!eventQueues.contains(queue))
+		if (!eventBusses.contains(queue))
 		{
-			eventQueues.add(queue);
+			eventBusses.add(queue);
 			return true;
 		}
 		
@@ -115,9 +137,11 @@ public class DomainEvents
 	 * 
 	 * @param event
 	 */
-	private void raiseEvent(Object event)
+	private void publishEvent(Object event)
 	{
-		for (EventQueue eventQueue : eventQueues)
+		assert(!eventBusses.isEmpty());
+
+		for (EventBus eventQueue : eventBusses)
 		{
 			eventQueue.raise(event);
 		}
@@ -125,7 +149,7 @@ public class DomainEvents
 
 	private void shutdownEventQueues()
 	{
-		for (EventQueue eventQueue : eventQueues)
+		for (EventBus eventQueue : eventBusses)
 		{
 			eventQueue.shutdown();
 		}

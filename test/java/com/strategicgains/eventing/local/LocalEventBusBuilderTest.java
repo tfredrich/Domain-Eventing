@@ -27,20 +27,20 @@ import com.strategicgains.eventing.EventHandler;
  * @author toddf
  * @since Oct 4, 2012
  */
-public class LocalQueueBuilderTest
+public class LocalEventBusBuilderTest
 {
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-	private LocalEventQueue queue;
+	private LocalEventBus queue;
 
 	@Before
 	public void setup()
 	{
-		queue = new LocalEventQueueBuilder()
-			.register(handler)
-			.register(ignoredHandler)
-			.register(longHandler)
+		queue = new LocalEventBusBuilder()
+			.subscribe(handler)
+			.subscribe(ignoredHandler)
+			.subscribe(longHandler)
 		    .build();
 	}
 	
@@ -100,11 +100,11 @@ public class LocalQueueBuilderTest
 	public void shouldRetryEventHandler()
 	throws Exception
 	{
-		queue = new LocalEventQueueBuilder()
+		queue = new LocalEventBusBuilder()
 			.shouldReraiseOnError(true)
-			.register(handler)
-			.register(ignoredHandler)
-			.register(longHandler)
+			.subscribe(handler)
+			.subscribe(ignoredHandler)
+			.subscribe(longHandler)
 		    .build();
 
 		assertEquals(0, handler.getCallCount());

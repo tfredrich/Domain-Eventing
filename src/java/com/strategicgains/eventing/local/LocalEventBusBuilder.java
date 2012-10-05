@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.strategicgains.eventing.EventHandler;
-import com.strategicgains.eventing.EventQueueBuilder;
+import com.strategicgains.eventing.EventBusBuilder;
 
 /**
  * Configure and build a local EventQueue that receives events only within the current JVM.
@@ -27,46 +27,46 @@ import com.strategicgains.eventing.EventQueueBuilder;
  * @author toddf
  * @since Oct 4, 2012
  */
-public class LocalEventQueueBuilder
-implements EventQueueBuilder<LocalEventQueue, LocalEventQueueBuilder>
+public class LocalEventBusBuilder
+implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
 {
 	private static final long DEFAULT_POLL_DELAY = 0L;
 
-	private List<EventHandler> registeredHandlers = new ArrayList<EventHandler>();
+	private List<EventHandler> subscribers = new ArrayList<EventHandler>();
 	private boolean shouldReraiseOnError = false;
 	private long pollDelay = DEFAULT_POLL_DELAY;
 
-	public LocalEventQueueBuilder()
+	public LocalEventBusBuilder()
 	{
 		super();
 	}
 
 	@Override
-	public LocalEventQueue build()
+	public LocalEventBus build()
 	{
-		assert(!registeredHandlers.isEmpty());
+		assert(!subscribers.isEmpty());
 
-		return new LocalEventQueue(registeredHandlers, shouldReraiseOnError, pollDelay);
+		return new LocalEventBus(subscribers, shouldReraiseOnError, pollDelay);
 	}
 
-    public LocalEventQueueBuilder shouldReraiseOnError(boolean value)
+    public LocalEventBusBuilder shouldReraiseOnError(boolean value)
     {
     	this.shouldReraiseOnError = value;
 	    return this;
     }
     
-    public LocalEventQueueBuilder pollDelay(long millis)
+    public LocalEventBusBuilder pollDelay(long millis)
     {
     	this.pollDelay = millis;
     	return this;
     }
 
     @Override
-    public LocalEventQueueBuilder register(EventHandler handler)
+    public LocalEventBusBuilder subscribe(EventHandler handler)
     {
-    	if (!registeredHandlers.contains(handler))
+    	if (!subscribers.contains(handler))
     	{
-    		registeredHandlers.add(handler);
+    		subscribers.add(handler);
     	}
     	
     	return this;

@@ -19,18 +19,18 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.strategicgains.eventing.EventHandler;
-import com.strategicgains.eventing.EventQueue;
+import com.strategicgains.eventing.EventBus;
 
 /**
  * @author toddf
  * @since Feb 6, 2012
  */
-public class LocalEventQueue
-extends EventQueue
+public class LocalEventBus
+extends EventBus
 {
 	private EventMonitor monitor;
 
-	public LocalEventQueue(List<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
+	public LocalEventBus(List<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
 	{
 		super(new ConcurrentLinkedQueue<Object>());
 		initializeMonitor(handlers, shouldReraiseOnError, pollDelayMillis);

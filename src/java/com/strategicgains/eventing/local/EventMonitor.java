@@ -23,7 +23,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import com.strategicgains.eventing.EventHandler;
-import com.strategicgains.eventing.EventQueue;
+import com.strategicgains.eventing.EventBus;
 
 /**
  * A thread that allows clients to raise events.  Registered event handlers
@@ -46,13 +46,13 @@ extends Thread
 	private List<EventHandler> handlers = new ArrayList<EventHandler>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
-	private EventQueue eventQueue;
+	private EventBus eventQueue;
 	private long delay;
 
 
 	// SECTION: CONSTRUCTORS
 
-	public EventMonitor(EventQueue queue, long pollDelayMillis)
+	public EventMonitor(EventBus queue, long pollDelayMillis)
 	{
 		super();
 		setDaemon(true);
