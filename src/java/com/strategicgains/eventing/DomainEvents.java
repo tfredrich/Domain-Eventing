@@ -18,12 +18,6 @@ package com.strategicgains.eventing;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.strategicgains.eventing.distributed.DistributedEventQueue;
-import com.strategicgains.eventing.local.EventMonitor;
-import com.strategicgains.eventing.local.LocalEventQueue;
-
 
 /**
  * DomainEvents defines a static public interface for raising and handling domain events.
@@ -56,20 +50,13 @@ public class DomainEvents
 	// SECTION: CONSTANTS
 
 	private static final DomainEvents INSTANCE = new DomainEvents();
-	private static final List<EventHandler> REGISTERED_HANDLERS = new ArrayList<EventHandler>();
-	private static final String DEFAULT_QUEUE_NAME = "domain-events";
-
 
 	
 	// SECTION: INSTANCE VARIABLES
 
-	private EventMonitor eventMonitor;
-	private EventQueue eventQueue;
-	private boolean isStarted = false;
-	private boolean isDistributedEventing = false;
-	private String distributedQueueName = null;
-	private Config hazelcastConfig = null;
-	
+	private List<EventQueue> eventQueues = new ArrayList<EventQueue>();
+
+
 	// SECTION: CONSTRUCTOR
 
 	private DomainEvents()
@@ -99,248 +86,48 @@ public class DomainEvents
 		instance().raiseEvent(event);
 	}
 
-	/**
-	 * When true, re-raise events when an exception happens in the event handler. Setting
-	 * to false causes the event to get dropped when an exception happens in the event handler.
-	 * The default is true.
-	 * 
-	 * @param value true to retry, false to ignore events that fail processing.
-	 */
-	public static void setReRaiseOnError(boolean value)
+	public static boolean addQueue(EventQueue queue)
 	{
-		instance().setRetryOnError(value);
-	}
-
-	/**
-	 * Instantiate and start the EventMonitor threads to begin processing DomainEvent messages.
-	 * Must be performed before calling DomainEvents.raise()
-	 */
-	public static void startMonitoring()
-	{
-		instance().startEventMonitors();
-	}
-
-	/**
-	 * Shutdown domain event handling.  Call during application shutdown.
-	 */
-	public static void stopMonitoring()
-	{
-		instance().stopEventMonitors();
+		return instance().addEventQueue(queue);
 	}
 	
-	public static void useDistributedEventing()
+	public static void shutdown()
 	{
-		setUseDistributedEventing(true);
-	}
-	
-	public static void useLocalEventing()
-	{
-		setUseDistributedEventing(false);
+		instance().shutdownEventQueues();
 	}
 
-	public static void setUseDistributedEventing(boolean value)
-	{
-		instance().setIsDistributedEventing(value);
-	}
-	
-	public static boolean isUsingDistributedEventing()
-	{
-		return instance().isDistributedEventing();
-	}
-	
-	public static String getDistributedQueueName()
-	{
-		return instance().getHazelcastQueueName();
-	}
 
-	public static void setDistributedQueueName(String queueName)
-	{
-		instance().setHazelcastQueueName(queueName);
-	}
-	
-	public static Config getDistributedQueueConfig()
-	{
-		return instance().getHazelcastConfig();
-	}
-
-	public static void setDistributedQueueConfig(Config config)
-	{
-		instance().setHazelcastConfig(config);
-	}
-
-	/**
-	 * Register an EventHandler for notification when DomainEvent are raised.
-	 * <p/>
-	 * Register all consumers *before* raising events as consumers get cached by which type(s) of events
-	 * they handle upon raise.
-	 * <p/>
-	 * This method is equivalent to calling instance().registerConsumer(EventConsumer).
-	 * 
-	 * @param handler
-	 */
-	public static void register(EventHandler handler)
-	{
-		REGISTERED_HANDLERS.add(handler);
-		instance().registerHandler(handler);
-	}
-
-	/**
-	 * Remove an EventHandler from receiving notification when DomainEvent are raised.
-	 * 
-	 * @param handler the handler to remove from receiving notifications.
-	 */
-	public static void unregister(EventHandler handler)
-	{
-		REGISTERED_HANDLERS.remove(handler);
-		instance().unregisterHandler(handler);
-	}
-
-	
 	// SECTION: INSTANCE METHODS
 
-	private void startEventMonitors()
+	private boolean addEventQueue(EventQueue queue)
 	{
-		createEventQueue();
-		eventMonitor = new EventMonitor(eventQueue);
-		eventMonitor.start();
-		isStarted = true;
-		registerHandlers(REGISTERED_HANDLERS);
-	}
-	
-	private void stopEventMonitors()
-	{
-		eventMonitor.shutdown();
-		unregisterHandlers(REGISTERED_HANDLERS);
-		isStarted = false;
-
-		if (isDistributedEventing())
+		if (!eventQueues.contains(queue))
 		{
-			Hazelcast.shutdownAll();
+			eventQueues.add(queue);
+			return true;
 		}
+		
+		return false;
 	}
 
 	/**
-	 * Raise an event, passing it to applicable consumers synchronously.
+	 * Raise an event, passing it to applicable consumers asynchronously.
 	 * 
 	 * @param event
 	 */
 	private void raiseEvent(Object event)
 	{
-		eventQueue.raise(event);
-	}
-
-	/**
-	 * When true, re-raise events when an exception happens in the event handler. Setting
-	 * to false causes the event to get dropped when an exception happens in the event handler.
-	 * 
-	 * @param value true to retry, false to ignore events that fail processing.
-	 */
-	private void setRetryOnError(boolean value)
-	{
-		eventMonitor.setReRaiseOnError(value);
-	}
-
-	/**
-	 * Register an EventHandler for notification when DomainEvent are raised.
-	 * <p/>
-	 * Register all handlers *before* raising events as handlers get cached by which type(s) of events
-	 * they handle upon raise.
-	 * 
-	 * @param handler
-	 */
-	public void registerHandler(EventHandler handler)
-	{
-		if (!isStarted) return;
-
-		eventMonitor.register(handler);
-	}
-
-	/**
-	 * Register an EventHandler for notification when DomainEvent are raised.
-	 * <p/>
-	 * Register all handlers *before* raising events as handlers get cached by which type(s) of events
-	 * they handle upon raise.
-	 * 
-	 * @param handler
-	 */
-	public boolean unregisterHandler(EventHandler handler)
-	{
-		if (!isStarted) return false;
-
-		return eventMonitor.unregister(handler);
-	}
-	
-	private void registerHandlers(List<EventHandler> handlers)
-	{
-		assert(isStarted);
-
-		for(EventHandler handler : handlers)
+		for (EventQueue eventQueue : eventQueues)
 		{
-			registerHandler(handler);
-		}
-	}
-	
-	private void unregisterHandlers(List<EventHandler> handlers)
-	{
-		assert(isStarted);
-
-		for(EventHandler handler : handlers)
-		{
-			unregisterHandler(handler);
-		}
-	}
-	
-	private void setIsDistributedEventing(boolean value)
-	{
-		this.isDistributedEventing = value;
-	}
-	
-	private boolean isDistributedEventing()
-	{
-		return isDistributedEventing;
-	}
-
-	private void createEventQueue()
-	{
-		if (isDistributedEventing())
-		{
-			if (hasHazelcastConfig())
-			{
-				eventQueue = new DistributedEventQueue(getHazelcastQueueName(), getHazelcastConfig());
-			}
-			else
-			{
-				eventQueue = new DistributedEventQueue(getHazelcastQueueName());
-			}
-		}
-		else
-		{
-//			eventQueue = new LocalEventQueue();
+			eventQueue.raise(event);
 		}
 	}
 
-	private Config getHazelcastConfig()
+	private void shutdownEventQueues()
 	{
-		return hazelcastConfig;
-	}
-
-	private boolean hasHazelcastConfig()
-	{
-		return (getHazelcastConfig() != null);
-	}
-	
-	private void setHazelcastConfig(Config config)
-	{
-		this.hazelcastConfig = config;
-	}
-
-	private String getHazelcastQueueName()
-	{
-		return (distributedQueueName == null ? DEFAULT_QUEUE_NAME : distributedQueueName);
-	}
-
-	private void setHazelcastQueueName(String queueName)
-	{
-		this.distributedQueueName = queueName;
+		for (EventQueue eventQueue : eventQueues)
+		{
+			eventQueue.shutdown();
+		}
 	}
 }

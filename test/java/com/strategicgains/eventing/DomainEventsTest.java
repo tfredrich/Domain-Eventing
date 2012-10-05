@@ -1,16 +1,28 @@
 /*
- * Copyright 2011, Pearson eCollege.  All rights reserved.
- */
+    Copyright 2011, Strategic Gains, Inc.
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+*/
 package com.strategicgains.eventing;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.strategicgains.eventing.local.LocalEventQueueBuilder;
 
 
 /**
@@ -23,33 +35,21 @@ public class DomainEventsTest
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
 
-	@BeforeClass
-	public static void startup()
-	{
-//		DomainEvents.setEventMonitorCount(5);
-		DomainEvents.startMonitoring();
-	}
-	
-	@AfterClass
-	public static void shutdown()
-	{
-		DomainEvents.stopMonitoring();
-	}
-
 	@Before
 	public void setup()
 	{
-		DomainEvents.register(handler);
-		DomainEvents.register(ignoredHandler);
-		DomainEvents.register(longHandler);
+		EventQueue q = new LocalEventQueueBuilder()
+			.register(handler)
+			.register(ignoredHandler)
+			.register(longHandler)
+			.build();
+		DomainEvents.addQueue(q);
 	}
 	
 	@After
 	public void teardown()
 	{
-		DomainEvents.unregister(handler);
-		DomainEvents.unregister(ignoredHandler);
-		DomainEvents.unregister(longHandler);
+		DomainEvents.shutdown();
 	}
 
 	@Test
@@ -104,23 +104,22 @@ public class DomainEventsTest
 		assertEquals(0, longHandler.getCallCount());
 	}
 
-	@Test
-	public void shouldRetryEventHandler()
-	throws Exception
-	{
-		assertEquals(0, handler.getCallCount());
-		DomainEvents.raise(new ErroredEvent());
-		Thread.sleep(50);
-		assertEquals(6, handler.getCallCount());
-		assertEquals(0, ignoredHandler.getCallCount());
-		assertEquals(0, longHandler.getCallCount());
-	}
+//	@Test
+//	public void shouldRetryEventHandler()
+//	throws Exception
+//	{
+//		assertEquals(0, handler.getCallCount());
+//		DomainEvents.raise(new ErroredEvent());
+//		Thread.sleep(50);
+//		assertEquals(6, handler.getCallCount());
+//		assertEquals(0, ignoredHandler.getCallCount());
+//		assertEquals(0, longHandler.getCallCount());
+//	}
 
 	@Test
 	public void shouldNotRetryEventHandler()
 	throws Exception
 	{
-		DomainEvents.setReRaiseOnError(false);
 		assertEquals(0, handler.getCallCount());
 		DomainEvents.raise(new ErroredEvent());
 		Thread.sleep(50);
@@ -133,7 +132,6 @@ public class DomainEventsTest
 	public void shouldProcessInParallel()
 	throws Exception
 	{
-		DomainEvents.setReRaiseOnError(false);
 		assertEquals(0, longHandler.getCallCount());
 		DomainEvents.raise(new LongEvent());
 		DomainEvents.raise(new LongEvent());
