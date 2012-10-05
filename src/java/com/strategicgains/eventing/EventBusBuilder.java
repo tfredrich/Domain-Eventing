@@ -22,5 +22,6 @@ package com.strategicgains.eventing;
 public interface EventBusBuilder<T  extends EventBus, B>
 {
 	public B subscribe(EventHandler handler);
+	public B unsubscribe(EventHandler handler);
 	public T build();
 }

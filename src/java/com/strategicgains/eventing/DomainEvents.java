@@ -15,11 +15,9 @@
 */
 package com.strategicgains.eventing;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import com.strategicgains.eventing.distributed.DistributedEventBusBuilder;
 import com.strategicgains.eventing.local.LocalEventBusBuilder;
 
 
@@ -58,7 +56,7 @@ public class DomainEvents
 	
 	// SECTION: INSTANCE VARIABLES
 
-	private List<EventBus> eventBusses = new ArrayList<EventBus>();
+	private Map<String, EventBus> eventBusses = new LinkedHashMap<String, EventBus>();
 
 
 	// SECTION: CONSTRUCTOR
@@ -84,19 +82,9 @@ public class DomainEvents
 	 * 
 	 * @return LocalEventBusBuilder
 	 */
-	public static LocalEventBusBuilder<Object> newLocalEventBus()
+	public static LocalEventBusBuilder newEventBusBuilder()
 	{
-		return new LocalEventBusBuilder<Object>();
-	}
-	
-	/**
-	 * Construct a new Distributed event bus builder.
-	 * 
-	 * @return DistributedEventBusBuilder
-	 */
-	public static DistributedEventBusBuilder<Serializable> newDistributedEventBus()
-	{
-		return new DistributedEventBusBuilder<Serializable>();
+		return new LocalEventBusBuilder();
 	}
 
 	/**
@@ -110,9 +98,14 @@ public class DomainEvents
 		instance().publishEvent(event);
 	}
 
-	public static boolean addBus(EventBus<?> bus)
+	public static boolean addBus(String name, EventBus bus)
 	{
-		return instance().addEventQueue(bus);
+		return instance().addEventBus(name, bus);
+	}
+	
+	public static EventBus getBus(String name)
+	{
+		return instance().getEventBus(name);
 	}
 	
 	public static void shutdown()
@@ -123,15 +116,20 @@ public class DomainEvents
 
 	// SECTION: INSTANCE METHODS
 
-	private boolean addEventQueue(EventBus<?> bus)
+	private boolean addEventBus(String name, EventBus bus)
 	{
-		if (!eventBusses.contains(bus))
+		if (!eventBusses.containsKey(name))
 		{
-			eventBusses.add(bus);
+			eventBusses.put(name, bus);
 			return true;
 		}
 		
 		return false;
+	}
+	
+	private EventBus getEventBus(String name)
+	{
+		return eventBusses.get(name);
 	}
 
 	/**
@@ -143,7 +141,7 @@ public class DomainEvents
 	{
 		assert(!eventBusses.isEmpty());
 
-		for (EventBus eventQueue : eventBusses)
+		for (EventBus eventQueue : eventBusses.values())
 		{
 			eventQueue.publish(event);
 		}
@@ -151,9 +149,11 @@ public class DomainEvents
 
 	private void shutdownEventQueues()
 	{
-		for (EventBus eventQueue : eventBusses)
+		for (EventBus eventQueue : eventBusses.values())
 		{
 			eventQueue.shutdown();
 		}
+		
+		eventBusses.clear();
 	}
 }

@@ -32,12 +32,12 @@ public class LocalEventBusBuilderTest
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-	private LocalEventBus<Object> queue;
+	private LocalEventBus queue;
 
 	@Before
 	public void setup()
 	{
-		queue = new LocalEventBusBuilder<Object>()
+		queue = new LocalEventBusBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
@@ -78,7 +78,7 @@ public class LocalEventBusBuilderTest
 		queue.publish(new IgnoredEvent());
 		queue.publish(new HandledEvent());
 		queue.publish(new IgnoredEvent());
-		Thread.sleep(5);
+		Thread.sleep(50);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -100,12 +100,12 @@ public class LocalEventBusBuilderTest
 	public void shouldRetryEventHandler()
 	throws Exception
 	{
-		queue = new LocalEventBusBuilder<Object>()
-			.shouldReraiseOnError(true)
+		queue = new LocalEventBusBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
-		    .build();
+			.shouldRepublishOnError(true)
+			.build();
 
 		assertEquals(0, handler.getCallCount());
 		queue.publish(new ErroredEvent());
@@ -140,7 +140,6 @@ public class LocalEventBusBuilderTest
 		Thread.sleep(50);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
-//		System.out.println("longHandler instance=" + longHandler.toString());
 		assertEquals(5, longHandler.getCallCount());
 	}
 

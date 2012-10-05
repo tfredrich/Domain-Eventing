@@ -15,33 +15,36 @@
  */
 package com.strategicgains.eventing.local;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.strategicgains.eventing.EventHandler;
 import com.strategicgains.eventing.EventBus;
+import com.strategicgains.eventing.EventHandler;
 
 /**
  * @author toddf
  * @since Feb 6, 2012
  */
-public class LocalEventBus<T>
-extends EventBus<T>
+public class LocalEventBus
+extends EventBus
 {
-	private EventMonitor<T> monitor;
+	private EventMonitor monitor;
+	private Set<Class<?>> publishableEventTypes = new HashSet<Class<?>>();
 
-	public LocalEventBus(List<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
+	public LocalEventBus(Collection<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
 	{
-		super(new ConcurrentLinkedQueue<T>());
+		super(new ConcurrentLinkedQueue<Object>());
 		initializeMonitor(handlers, shouldReraiseOnError, pollDelayMillis);
 	}
 
 	/**
 	 * @param handlers
 	 */
-	private void initializeMonitor(List<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
+	private void initializeMonitor(Collection<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
 	{
-		this.monitor = new EventMonitor<T>(this, pollDelayMillis);
+		this.monitor = new EventMonitor(this, pollDelayMillis);
 
 		for (EventHandler handler : handlers)
 		{
@@ -52,9 +55,39 @@ extends EventBus<T>
 		this.monitor.start();
 	}
 
+	public boolean addPublishableEventType(Class<?> eventType)
+	{
+		return publishableEventTypes.add(eventType);
+	}
+
+	@Override
+	public boolean canPublish(Class<?> eventType)
+	{
+		if (publishableEventTypes.isEmpty()) return true;
+		
+		return publishableEventTypes.contains(eventType);
+	}
+
 	@Override
     public void shutdown()
     {
 		monitor.shutdown();
+    }
+
+    @Override
+    public boolean subscribe(EventHandler handler)
+    {
+		return monitor.register(handler);
+    }
+
+    @Override
+    public boolean unsubscribe(EventHandler handler)
+    {
+		return monitor.unregister(handler);
+    }
+
+    public void retryOnError(boolean value)
+    {
+    	monitor.setReRaiseOnError(value);
     }
 }

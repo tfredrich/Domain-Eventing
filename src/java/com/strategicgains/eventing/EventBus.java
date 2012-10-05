@@ -21,11 +21,11 @@ import java.util.Queue;
  * @author toddf
  * @since Jun 27, 2012
  */
-public abstract class EventBus<T>
+public abstract class EventBus
 {
-	private Queue<T> eventQueue;
+	private Queue<Object> eventQueue;
 
-	public EventBus(Queue<T> queueImpl)
+	public EventBus(Queue<Object> queueImpl)
 	{
 		super();
 		this.eventQueue = queueImpl;
@@ -36,13 +36,15 @@ public abstract class EventBus<T>
 		return eventQueue.isEmpty();
 	}
 
-	public T poll()
+	public Object poll()
 	{
 		return eventQueue.poll();
 	}
 
-	public void publish(T event)
+	public void publish(Object event)
 	{
+		if (!canPublish(event.getClass())) return;
+
 		eventQueue.add(event);
 
 		synchronized (this)
@@ -50,6 +52,13 @@ public abstract class EventBus<T>
 			notify();
 		}
 	}
-	
+
+	public boolean canPublish(Class<?> eventType)
+	{
+		return true;
+	}
+
 	public abstract void shutdown();
+	public abstract boolean subscribe(EventHandler handler);
+	public abstract boolean unsubscribe(EventHandler handler);
 }

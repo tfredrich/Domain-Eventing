@@ -17,22 +17,27 @@ package com.strategicgains.eventing.local;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import com.strategicgains.eventing.EventHandler;
 import com.strategicgains.eventing.EventBus;
+import com.strategicgains.eventing.EventHandler;
 
 /**
- * A thread that allows clients to raise events.  Registered event handlers
- * will be called for whatever event types each can process.
+ * A thread that recieves published events and sends them to subscribers.
+ * Registered event handlers will be called for whatever event types each can process.
+ * 
+ * EventHandlers are called using an Executor pool that grows dynamically as needed, so
+ * they are run asynchronously.
  * 
  * @author toddf
  * @since May 17, 2011
  */
-public class EventMonitor<T>
+public class EventMonitor
 extends Thread
 {
 	// SECTION: CONSTANTS
@@ -43,16 +48,16 @@ extends Thread
 	// SECTION: INSTANCE METHODS
 
 	private Map<Class<?>, List<EventHandler>> handlersByEvent = new HashMap<Class<?>, List<EventHandler>>();
-	private List<EventHandler> handlers = new ArrayList<EventHandler>();
+	private Set<EventHandler> handlers = new LinkedHashSet<EventHandler>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
-	private EventBus<T> eventQueue;
+	private EventBus eventQueue;
 	private long delay;
 
 
 	// SECTION: CONSTRUCTORS
 
-	public EventMonitor(EventBus<T> queue, long pollDelayMillis)
+	public EventMonitor(EventBus queue, long pollDelayMillis)
 	{
 		super();
 		setDaemon(true);
@@ -63,14 +68,11 @@ extends Thread
 	
 	// SECTION: INSTANCE METHODS
 
-	public synchronized void register(EventHandler handler)
+	public synchronized boolean register(EventHandler handler)
 	{
-		if (!handlers.contains(handler))
-		{
-			handlers.add(handler);
-		}
-		
+		boolean result = handlers.add(handler);
 		handlersByEvent.clear();
+		return result;
 	}
 
 	public synchronized boolean unregister(EventHandler handler)
@@ -127,7 +129,7 @@ extends Thread
 				continue;
 			}
 
-			T event = null;
+			Object event = null;
 
 			while ((event = eventQueue.poll()) != null)
 			{
@@ -139,7 +141,7 @@ extends Thread
 		clearAllHandlers();
 	}
 
-	private void processEvent(final T event)
+	private void processEvent(final Object event)
     {
 	    System.out.println("Processing event: " + event.toString());
 	    for (final EventHandler handler : getConsumersFor(event.getClass()))

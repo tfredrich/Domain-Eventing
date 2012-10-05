@@ -15,11 +15,12 @@
  */
 package com.strategicgains.eventing.local;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import com.strategicgains.eventing.EventHandler;
 import com.strategicgains.eventing.EventBusBuilder;
+import com.strategicgains.eventing.EventHandler;
 
 /**
  * Configure and build a local EventQueue that receives events only within the current JVM.
@@ -27,13 +28,14 @@ import com.strategicgains.eventing.EventBusBuilder;
  * @author toddf
  * @since Oct 4, 2012
  */
-public class LocalEventBusBuilder<T>
-implements EventBusBuilder<LocalEventBus<T>, LocalEventBusBuilder<T>>
+public class LocalEventBusBuilder
+implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
 {
 	private static final long DEFAULT_POLL_DELAY = 0L;
 
-	private List<EventHandler> subscribers = new ArrayList<EventHandler>();
-	private boolean shouldReraiseOnError = false;
+	private Set<EventHandler> subscribers = new LinkedHashSet<EventHandler>();
+	private Set<Class<?>> publishableEventTypes = new HashSet<Class<?>>();
+	private boolean shouldRepublishOnError = false;
 	private long pollDelay = DEFAULT_POLL_DELAY;
 
 	public LocalEventBusBuilder()
@@ -42,33 +44,53 @@ implements EventBusBuilder<LocalEventBus<T>, LocalEventBusBuilder<T>>
 	}
 
 	@Override
-	public LocalEventBus<T> build()
+	public LocalEventBus build()
 	{
 		assert(!subscribers.isEmpty());
 
-		return new LocalEventBus<T>(subscribers, shouldReraiseOnError, pollDelay);
+		LocalEventBus bus = new LocalEventBus(subscribers, shouldRepublishOnError, pollDelay);
+		
+		for (Class<?> eventType : publishableEventTypes)
+		{
+			bus.addPublishableEventType(eventType);
+		}
+		
+		return bus;
 	}
 
-    public LocalEventBusBuilder<T> shouldReraiseOnError(boolean value)
+    public LocalEventBusBuilder shouldRepublishOnError(boolean value)
     {
-    	this.shouldReraiseOnError = value;
+    	this.shouldRepublishOnError = value;
 	    return this;
     }
     
-    public LocalEventBusBuilder<T> pollDelay(long millis)
+    public LocalEventBusBuilder pollDelay(long millis)
     {
     	this.pollDelay = millis;
     	return this;
     }
 
     @Override
-    public LocalEventBusBuilder<T> subscribe(EventHandler handler)
+    public LocalEventBusBuilder subscribe(EventHandler handler)
     {
     	if (!subscribers.contains(handler))
     	{
     		subscribers.add(handler);
     	}
     	
+    	return this;
+    }
+
+    @Override
+    public LocalEventBusBuilder unsubscribe(EventHandler handler)
+    {
+    	subscribers.remove(handler);
+    	return this;
+    }
+    
+    public LocalEventBusBuilder addPublishalbeEventType(Class<?> eventType)
+    {
+    	publishableEventTypes.add(eventType);
     	return this;
     }
 }
