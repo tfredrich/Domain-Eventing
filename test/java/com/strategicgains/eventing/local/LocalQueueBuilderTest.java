@@ -1,61 +1,53 @@
 /*
- * Copyright 2011, Pearson eCollege.  All rights reserved.
+    Copyright 2012, Strategic Gains, Inc.
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
  */
-package com.strategicgains.eventing;
+package com.strategicgains.eventing.local;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.strategicgains.eventing.EventHandler;
 
 /**
  * @author toddf
- * @since May 18, 2011
+ * @since Oct 4, 2012
  */
-public class DomainEventsTest
+public class LocalQueueBuilderTest
 {
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-
-	@BeforeClass
-	public static void startup()
-	{
-//		DomainEvents.setEventMonitorCount(5);
-		DomainEvents.startMonitoring();
-	}
-	
-	@AfterClass
-	public static void shutdown()
-	{
-		DomainEvents.stopMonitoring();
-	}
+	private LocalEventQueue queue;
 
 	@Before
 	public void setup()
 	{
-		DomainEvents.register(handler);
-		DomainEvents.register(ignoredHandler);
-		DomainEvents.register(longHandler);
+		queue = new LocalEventQueueBuilder()
+			.register(handler)
+			.register(ignoredHandler)
+			.register(longHandler)
+		    .build();
 	}
 	
 	@After
 	public void teardown()
 	{
-		DomainEvents.unregister(handler);
-		DomainEvents.unregister(ignoredHandler);
-		DomainEvents.unregister(longHandler);
-	}
-
-	@Test
-	public void isSingleton()
-	{
-		assertTrue(DomainEvents.instance() == DomainEvents.instance());
+		queue.shutdown();
 	}
 
 	@Test
@@ -63,7 +55,7 @@ public class DomainEventsTest
 	throws Exception
 	{
 		assertEquals(0, handler.getCallCount());
-		DomainEvents.raise(new HandledEvent());
+		queue.raise(new HandledEvent());
 		Thread.sleep(5);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
@@ -76,16 +68,16 @@ public class DomainEventsTest
 	{
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
-		DomainEvents.raise(new HandledEvent());
-		DomainEvents.raise(new IgnoredEvent());
-		DomainEvents.raise(new HandledEvent());
-		DomainEvents.raise(new IgnoredEvent());
-		DomainEvents.raise(new HandledEvent());
-		DomainEvents.raise(new IgnoredEvent());
-		DomainEvents.raise(new HandledEvent());
-		DomainEvents.raise(new IgnoredEvent());
-		DomainEvents.raise(new HandledEvent());
-		DomainEvents.raise(new IgnoredEvent());
+		queue.raise(new HandledEvent());
+		queue.raise(new IgnoredEvent());
+		queue.raise(new HandledEvent());
+		queue.raise(new IgnoredEvent());
+		queue.raise(new HandledEvent());
+		queue.raise(new IgnoredEvent());
+		queue.raise(new HandledEvent());
+		queue.raise(new IgnoredEvent());
+		queue.raise(new HandledEvent());
+		queue.raise(new IgnoredEvent());
 		Thread.sleep(5);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
@@ -97,7 +89,7 @@ public class DomainEventsTest
 	throws Exception
 	{
 		assertEquals(0, ignoredHandler.getCallCount());
-		DomainEvents.raise(new IgnoredEvent());
+		queue.raise(new IgnoredEvent());
 		Thread.sleep(5);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(1, ignoredHandler.getCallCount());
@@ -108,8 +100,15 @@ public class DomainEventsTest
 	public void shouldRetryEventHandler()
 	throws Exception
 	{
+		queue = new LocalEventQueueBuilder()
+			.shouldReraiseOnError(true)
+			.register(handler)
+			.register(ignoredHandler)
+			.register(longHandler)
+		    .build();
+
 		assertEquals(0, handler.getCallCount());
-		DomainEvents.raise(new ErroredEvent());
+		queue.raise(new ErroredEvent());
 		Thread.sleep(50);
 		assertEquals(6, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
@@ -120,9 +119,8 @@ public class DomainEventsTest
 	public void shouldNotRetryEventHandler()
 	throws Exception
 	{
-		DomainEvents.setReRaiseOnError(false);
 		assertEquals(0, handler.getCallCount());
-		DomainEvents.raise(new ErroredEvent());
+		queue.raise(new ErroredEvent());
 		Thread.sleep(50);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
@@ -133,17 +131,16 @@ public class DomainEventsTest
 	public void shouldProcessInParallel()
 	throws Exception
 	{
-		DomainEvents.setReRaiseOnError(false);
 		assertEquals(0, longHandler.getCallCount());
-		DomainEvents.raise(new LongEvent());
-		DomainEvents.raise(new LongEvent());
-		DomainEvents.raise(new LongEvent());
-		DomainEvents.raise(new LongEvent());
-		DomainEvents.raise(new LongEvent());
-		Thread.sleep(100);
+		queue.raise(new LongEvent());
+		queue.raise(new LongEvent());
+		queue.raise(new LongEvent());
+		queue.raise(new LongEvent());
+		queue.raise(new LongEvent());
+		Thread.sleep(50);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
-		System.out.println("longHandler instance=" + longHandler.toString());
+//		System.out.println("longHandler instance=" + longHandler.toString());
 		assertEquals(5, longHandler.getCallCount());
 	}
 
@@ -271,12 +268,7 @@ public class DomainEventsTest
 		@Override
 		public boolean handles(Class<?> eventClass)
 		{
-			if (LongEvent.class.isAssignableFrom(eventClass))
-			{
-				return true;
-			}
-			
-			return false;
+			return (LongEvent.class.isAssignableFrom(eventClass));
 		}		
 	}
 }

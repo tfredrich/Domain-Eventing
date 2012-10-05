@@ -13,12 +13,17 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package com.strategicgains.eventing;
+package com.strategicgains.eventing.local;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.EventQueue;
 
 /**
  * A thread that allows clients to raise events.  Registered event handlers
@@ -30,7 +35,9 @@ import java.util.Map;
 public class EventMonitor
 extends Thread
 {
-	private static final long DEFAULT_DELAY = 0L;
+	// SECTION: CONSTANTS
+
+	private static final Executor eventExecutor = Executors.newCachedThreadPool();
 
 	
 	// SECTION: INSTANCE METHODS
@@ -42,13 +49,8 @@ extends Thread
 	private EventQueue eventQueue;
 	private long delay;
 
-	
-	// SECTION: CONSTANTS
 
-	public EventMonitor(EventQueue queue)
-	{
-		this(queue, DEFAULT_DELAY);
-	}
+	// SECTION: CONSTRUCTORS
 
 	public EventMonitor(EventQueue queue, long pollDelayMillis)
 	{
@@ -71,12 +73,15 @@ extends Thread
 		handlersByEvent.clear();
 	}
 
-	public synchronized void unregister(EventHandler handler)
+	public synchronized boolean unregister(EventHandler handler)
 	{
 		if (handlers.remove(handler))
 		{
 			handlersByEvent.clear();
+			return true;
 		}
+		
+		return false;
 	}
 
 	public void shutdown()
@@ -134,25 +139,31 @@ extends Thread
 		clearAllHandlers();
 	}
 
-	private void processEvent(Object event)
+	private void processEvent(final Object event)
     {
 	    System.out.println("Processing event: " + event.toString());
-	    for (EventHandler handler : getConsumersFor(event.getClass()))
+	    for (final EventHandler handler : getConsumersFor(event.getClass()))
 	    {
-	    	try
-	    	{
-	    		handler.handle(event);
-	    	}
-	    	catch(Exception e)
-	    	{
-	    		e.printStackTrace();
-	    		
-	    		if (shouldReRaiseOnError)
-	    		{
-	    			System.out.println("Event handler failed. Re-publishing event: " + event.toString());
-	    			eventQueue.raise(event);
-	    		}
-	    	}
+    		eventExecutor.execute(new Runnable(){
+				@Override
+                public void run()
+                {
+			    	try
+			    	{
+			    		handler.handle(event);
+			    	}
+			    	catch(Exception e)
+			    	{
+			    		e.printStackTrace();
+			    		
+			    		if (shouldReRaiseOnError)
+			    		{
+			    			System.out.println("Event handler failed. Re-publishing event: " + event.toString());
+			    			eventQueue.raise(event);
+			    		}
+			    	}
+                }
+    		});
 	    }
     }
 

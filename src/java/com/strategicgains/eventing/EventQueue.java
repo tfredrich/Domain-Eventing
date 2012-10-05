@@ -21,27 +21,27 @@ import java.util.Queue;
  * @author toddf
  * @since Jun 27, 2012
  */
-public class EventQueue
+public abstract class EventQueue
 {
 	private Queue<Object> eventQueue;
-	
+
 	public EventQueue(Queue<Object> queueImpl)
 	{
 		super();
 		this.eventQueue = queueImpl;
 	}
 
-    public boolean isEmpty()
+	public boolean isEmpty()
 	{
 		return eventQueue.isEmpty();
 	}
 
-    public Object poll()
+	public Object poll()
 	{
 		return eventQueue.poll();
 	}
-	
-    public void raise(Object event)
+
+	public void raise(Object event)
 	{
 		eventQueue.add(event);
 
@@ -50,4 +50,6 @@ public class EventQueue
 			notify();
 		}
 	}
+	
+	public abstract void shutdown();
 }

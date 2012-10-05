@@ -15,17 +15,12 @@
 */
 package com.strategicgains.eventing;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  * @author toddf
- * @since Feb 6, 2012
+ * @since Oct 4, 2012
  */
-public class LocalEventQueue
-extends EventQueue
+public interface EventQueueBuilder<T  extends EventQueue, B>
 {
-	public LocalEventQueue()
-	{
-		super(new ConcurrentLinkedQueue<Object>());
-	}
+	public B register(EventHandler handler);
+	public T build();
 }

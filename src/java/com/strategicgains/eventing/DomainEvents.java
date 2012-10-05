@@ -18,6 +18,12 @@ package com.strategicgains.eventing;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.strategicgains.eventing.distributed.DistributedEventQueue;
+import com.strategicgains.eventing.local.EventMonitor;
+import com.strategicgains.eventing.local.LocalEventQueue;
+
 
 /**
  * DomainEvents defines a static public interface for raising and handling domain events.
@@ -49,18 +55,20 @@ public class DomainEvents
 {
 	// SECTION: CONSTANTS
 
-	private static final int DEFAULT_DOMAIN_EVENT_WORKERS = 1;
 	private static final DomainEvents INSTANCE = new DomainEvents();
 	private static final List<EventHandler> REGISTERED_HANDLERS = new ArrayList<EventHandler>();
+	private static final String DEFAULT_QUEUE_NAME = "domain-events";
+
 
 	
 	// SECTION: INSTANCE VARIABLES
 
-	private EventMonitor[] eventMonitors;
+	private EventMonitor eventMonitor;
 	private EventQueue eventQueue;
-	private int eventWorkerCount = DEFAULT_DOMAIN_EVENT_WORKERS;
 	private boolean isStarted = false;
 	private boolean isDistributedEventing = false;
+	private String distributedQueueName = null;
+	private Config hazelcastConfig = null;
 	
 	// SECTION: CONSTRUCTOR
 
@@ -104,28 +112,6 @@ public class DomainEvents
 	}
 
 	/**
-	 * Return the number of EventMonitor threads that will be started when
-	 * DomainEvents.startMonitoring() is called.
-	 * 
-	 * @return the number of EventMonitor threads
-	 */
-	public static int getEventMonitorCount()
-	{
-		return instance().getEventWorkerCount();
-	}
-	
-	/**
-	 * Set the number of EventMonitor threads to start when DomainEvents.startMonitoring()
-	 * is called.
-	 * 
-	 * @param value the number of desired EventMonitor threads.
-	 */
-	public static void setEventMonitorCount(int value)
-	{
-		instance().setEventWorkerCount(value);
-	}
-
-	/**
 	 * Instantiate and start the EventMonitor threads to begin processing DomainEvent messages.
 	 * Must be performed before calling DomainEvents.raise()
 	 */
@@ -161,6 +147,26 @@ public class DomainEvents
 	{
 		return instance().isDistributedEventing();
 	}
+	
+	public static String getDistributedQueueName()
+	{
+		return instance().getHazelcastQueueName();
+	}
+
+	public static void setDistributedQueueName(String queueName)
+	{
+		instance().setHazelcastQueueName(queueName);
+	}
+	
+	public static Config getDistributedQueueConfig()
+	{
+		return instance().getHazelcastConfig();
+	}
+
+	public static void setDistributedQueueConfig(Config config)
+	{
+		instance().setHazelcastConfig(config);
+	}
 
 	/**
 	 * Register an EventHandler for notification when DomainEvent are raised.
@@ -195,29 +201,22 @@ public class DomainEvents
 	private void startEventMonitors()
 	{
 		createEventQueue();
-		eventMonitors = new EventMonitor[getEventWorkerCount()];
-		
-		for (int i = 0; i < getEventWorkerCount(); ++i)
-		{
-			eventMonitors[i] = new EventMonitor(eventQueue);
-			eventMonitors[i].start();
-		}
-		
+		eventMonitor = new EventMonitor(eventQueue);
+		eventMonitor.start();
 		isStarted = true;
 		registerHandlers(REGISTERED_HANDLERS);
 	}
 	
 	private void stopEventMonitors()
 	{
-		for (EventMonitor eventMonitor : eventMonitors)
-		{
-			eventMonitor.shutdown();
-		}
-		
+		eventMonitor.shutdown();
 		unregisterHandlers(REGISTERED_HANDLERS);
 		isStarted = false;
-		
-		// TODO: shutdown Hazelcast cluster, if applicable.
+
+		if (isDistributedEventing())
+		{
+			Hazelcast.shutdownAll();
+		}
 	}
 
 	/**
@@ -238,10 +237,7 @@ public class DomainEvents
 	 */
 	private void setRetryOnError(boolean value)
 	{
-		for (EventMonitor eventMonitor : eventMonitors)
-		{
-			eventMonitor.setReRaiseOnError(value);
-		}
+		eventMonitor.setReRaiseOnError(value);
 	}
 
 	/**
@@ -256,10 +252,7 @@ public class DomainEvents
 	{
 		if (!isStarted) return;
 
-		for (EventMonitor eventMonitor : eventMonitors)
-		{
-			eventMonitor.register(handler);
-		}
+		eventMonitor.register(handler);
 	}
 
 	/**
@@ -270,14 +263,11 @@ public class DomainEvents
 	 * 
 	 * @param handler
 	 */
-	public void unregisterHandler(EventHandler handler)
+	public boolean unregisterHandler(EventHandler handler)
 	{
-		if (!isStarted) return;
+		if (!isStarted) return false;
 
-		for (EventMonitor eventMonitor : eventMonitors)
-		{
-			eventMonitor.unregister(handler);
-		}
+		return eventMonitor.unregister(handler);
 	}
 	
 	private void registerHandlers(List<EventHandler> handlers)
@@ -300,16 +290,6 @@ public class DomainEvents
 		}
 	}
 	
-	private int getEventWorkerCount()
-	{
-		return eventWorkerCount;
-	}
-	
-	private void setEventWorkerCount(int value)
-	{
-		this.eventWorkerCount = value;
-	}
-	
 	private void setIsDistributedEventing(boolean value)
 	{
 		this.isDistributedEventing = value;
@@ -324,11 +304,43 @@ public class DomainEvents
 	{
 		if (isDistributedEventing())
 		{
-			eventQueue = new DistributedEventQueue();
+			if (hasHazelcastConfig())
+			{
+				eventQueue = new DistributedEventQueue(getHazelcastQueueName(), getHazelcastConfig());
+			}
+			else
+			{
+				eventQueue = new DistributedEventQueue(getHazelcastQueueName());
+			}
 		}
 		else
 		{
-			eventQueue = new LocalEventQueue();
+//			eventQueue = new LocalEventQueue();
 		}
+	}
+
+	private Config getHazelcastConfig()
+	{
+		return hazelcastConfig;
+	}
+
+	private boolean hasHazelcastConfig()
+	{
+		return (getHazelcastConfig() != null);
+	}
+	
+	private void setHazelcastConfig(Config config)
+	{
+		this.hazelcastConfig = config;
+	}
+
+	private String getHazelcastQueueName()
+	{
+		return (distributedQueueName == null ? DEFAULT_QUEUE_NAME : distributedQueueName);
+	}
+
+	private void setHazelcastQueueName(String queueName)
+	{
+		this.distributedQueueName = queueName;
 	}
 }
