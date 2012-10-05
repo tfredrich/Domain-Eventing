@@ -1,21 +1,31 @@
 Overview
 ========
 Domain-Eventing implements the Domain Events concept from Eric Evans' Domain Driven Design.  Enables simple messaging
-for domain models within a single JVM.
+for domain models within a single JVM, or using a distributed event bus, message across a cluster of JVMs.
 
-This simple Java library provides a Singleton interface (see DomainEvents class) to an EventMonitor thread and a simple
-way to raise events (which are just POJOs) throughout the domain layer.
+This simple Java library provides a Singleton interface (see DomainEvents class) to create event bus(ses) and to
+publish events (which are just POJOs) throughout the domain layer (POJOs must be Serializable for a distributed
+event bus).
 
 Event handlers simply implement the EventHandler interface, which has two methods, handle(Object) and handles(Class).
-The handle() method is the implementation for dealing with the domain event and handles() returns a boolean indicating
-whether that particular EventHandler can process the given class.
+The handle() method is the implementation for processing the domain event and handles() returns a boolean indicating
+whether that particular EventHandler can process the given event.
 
 Why Domain Eventing Instead of Messaging or ESB?
 ================================================
-Messaging systems or ESB (Enterprise Service Bus) is very heavy and resource intensive. Small, quick, inter-application
+Messaging systems or ESB (Enterprise Service Bus) are very heavy and resource intensive. Small, quick, inter-application
 messages don't usually need to be broadcast enterprise wide.  For instance, within an eventual-consistency database
 model, cascade deletes may occur asynchronously, outside of the request.  This is a great candidate for inter-application
-eventing instead of leveraging a full-up JMS or other messaging system.
+eventing instead of leveraging full-up JMS or other messaging system.
+
+The domain eventing model supported is publish/subscribe (pub/sub)--sending messages to all subsribers that can process it.
+There is no concept within this library of point-to-point or single consumer for a message and is, therefore, left as
+an exercise for the reader... :-)
+
+Event Production
+================
+In this model, published events stay within the current Java virtual machine (JVM).  This is the simplest and fastest option.
+However, as published events are in an in-memory queue, it is possible to lose messages if the JVM goes down unexpectedly.
 
 Event Flow
 ==========

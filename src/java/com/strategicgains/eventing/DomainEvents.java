@@ -15,6 +15,7 @@
 */
 package com.strategicgains.eventing;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,15 +78,15 @@ public class DomainEvents
 	{
 		return INSTANCE;
 	}
-	
+
 	/**
 	 * Construct a new Local event bus builder.
 	 * 
 	 * @return LocalEventBusBuilder
 	 */
-	public static LocalEventBusBuilder newLocalEventBus()
+	public static LocalEventBusBuilder<Object> newLocalEventBus()
 	{
-		return new LocalEventBusBuilder();
+		return new LocalEventBusBuilder<Object>();
 	}
 	
 	/**
@@ -93,9 +94,9 @@ public class DomainEvents
 	 * 
 	 * @return DistributedEventBusBuilder
 	 */
-	public static DistributedEventBusBuilder newDistributedEventBus()
+	public static DistributedEventBusBuilder<Serializable> newDistributedEventBus()
 	{
-		return new DistributedEventBusBuilder();
+		return new DistributedEventBusBuilder<Serializable>();
 	}
 
 	/**
@@ -109,9 +110,9 @@ public class DomainEvents
 		instance().publishEvent(event);
 	}
 
-	public static boolean addBus(EventBus queue)
+	public static boolean addBus(EventBus<?> bus)
 	{
-		return instance().addEventQueue(queue);
+		return instance().addEventQueue(bus);
 	}
 	
 	public static void shutdown()
@@ -122,11 +123,11 @@ public class DomainEvents
 
 	// SECTION: INSTANCE METHODS
 
-	private boolean addEventQueue(EventBus queue)
+	private boolean addEventQueue(EventBus<?> bus)
 	{
-		if (!eventBusses.contains(queue))
+		if (!eventBusses.contains(bus))
 		{
-			eventBusses.add(queue);
+			eventBusses.add(bus);
 			return true;
 		}
 		
