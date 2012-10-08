@@ -16,7 +16,9 @@
 package com.strategicgains.eventing.hazelcast;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
@@ -31,23 +33,53 @@ import com.strategicgains.eventing.EventHandler;
  * @author toddf
  * @since Jun 27, 2012
  */
-public class DistributedEventBus<T extends Serializable>
+public class HazelcastEventBus<T extends Serializable>
 extends EventBus
 {
 	private String name;
+	private Set<Class<? extends Serializable>> publishableEventTypes = new HashSet<Class<? extends Serializable>>();
 
-	public DistributedEventBus(String queueName, List<EventHandler> subscribers)
+	public HazelcastEventBus(String queueName, List<EventHandler> subscribers)
 	{
-		super(new HazelcastTopicQueueAdapter<T>(Hazelcast.getTopic(queueName)));
+		super(new HazelcastTopicQueueAdapter(Hazelcast.getTopic(queueName)));
 		addSubscribers(queueName, subscribers);
 	}
 
-	public DistributedEventBus(String queueName, Config config,
+	public HazelcastEventBus(String queueName, Config config,
 	    List<EventHandler> subscribers)
 	{
-		super(new HazelcastTopicQueueAdapter<T>(Hazelcast.init(config).getTopic(queueName)));
+		super(new HazelcastTopicQueueAdapter(Hazelcast.init(config).getTopic(queueName)));
 		addSubscribers(queueName, subscribers);
 	}
+
+    public boolean addPublishableEventType(Class<? extends Serializable> eventType)
+    {
+		return publishableEventTypes.add(eventType);
+    }
+
+	@Override
+	public boolean canPublish(Class<?> eventType)
+	{
+		if (publishableEventTypes.isEmpty()) return true;
+		
+		return publishableEventTypes.contains(eventType);
+	}
+
+    @Override
+    public boolean subscribe(EventHandler handler)
+    {
+		ITopic<Object> t = Hazelcast.getTopic(name);
+		t.addMessageListener(new EventHandlerAdapter(handler));
+		return true;
+    }
+
+    @Override
+    public boolean unsubscribe(EventHandler handler)
+    {
+		ITopic<Object> t = Hazelcast.getTopic(name);
+		t.removeMessageListener(new EventHandlerAdapter(handler));
+		return true;
+    }
 
 	@Override
 	public void shutdown()
@@ -68,20 +100,4 @@ extends EventBus
 			t.addMessageListener(new EventHandlerAdapter(handler));
 		}
 	}
-
-    @Override
-    public boolean subscribe(EventHandler handler)
-    {
-		ITopic<Object> t = Hazelcast.getTopic(name);
-		t.addMessageListener(new EventHandlerAdapter(handler));
-		return true;
-    }
-
-    @Override
-    public boolean unsubscribe(EventHandler handler)
-    {
-		ITopic<Object> t = Hazelcast.getTopic(name);
-		t.removeMessageListener(new EventHandlerAdapter(handler));
-		return true;
-    }
 }

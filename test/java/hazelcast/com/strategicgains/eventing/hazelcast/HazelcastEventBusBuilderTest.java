@@ -29,17 +29,17 @@ import com.strategicgains.eventing.EventHandler;
  * @author toddf
  * @since Oct 4, 2012
  */
-public class DistributedEventBusBuilderTest
+public class HazelcastEventBusBuilderTest
 {
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-	private DistributedEventBus<Serializable> queue;
+	private HazelcastEventBus<Serializable> queue;
 
 	@Before
 	public void setup()
 	{
-		queue = new DistributedEventBusBuilder<Serializable>()
+		queue = new HazelcastEventBusBuilder<Serializable>()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)

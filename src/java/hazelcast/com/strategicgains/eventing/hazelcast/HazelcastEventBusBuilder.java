@@ -16,8 +16,9 @@
 package com.strategicgains.eventing.hazelcast;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.hazelcast.config.Config;
@@ -28,8 +29,8 @@ import com.strategicgains.eventing.EventHandler;
  * @author toddf
  * @since Oct 5, 2012
  */
-public class DistributedEventBusBuilder<T extends Serializable>
-implements EventBusBuilder<DistributedEventBus<T>, DistributedEventBusBuilder<T>>
+public class HazelcastEventBusBuilder<T extends Serializable>
+implements EventBusBuilder<HazelcastEventBus<T>, HazelcastEventBusBuilder<T>>
 {
 	private static final String DEFAULT_QUEUE_NAME = "domain-events";
 
@@ -37,34 +38,42 @@ implements EventBusBuilder<DistributedEventBus<T>, DistributedEventBusBuilder<T>
 	private String queueName = DEFAULT_QUEUE_NAME;
 	private Set<EventHandler> subscribers = new LinkedHashSet<EventHandler>();
 
-	public DistributedEventBusBuilder()
+	public HazelcastEventBusBuilder()
 	{
 		super();
 	}
 
 	/**
-	 * Very 'thin' (as in not at all) veneer to set underlying Hazelcast configuration.
-	 * Yes, this exposes the underlying implementation.  Bummer.
+	 * Very 'thin' (as in not at all) veneer to set underlying Hazelcast
+	 * configuration. Yes, this exposes the underlying implementation. Bummer.
 	 * 
 	 * @param configuration Hazelcast Config instance.
 	 * @return this builder to facilitate method chainging.
 	 */
-	public DistributedEventBusBuilder<T> setConfiguration(Config configuration)
+	public HazelcastEventBusBuilder<T> setConfiguration(Config configuration)
 	{
 		this.config = configuration;
 		return this;
 	}
-	
-    @Override
-    public DistributedEventBusBuilder<T> subscribe(EventHandler handler)
-    {
-   		subscribers.add(handler);
-    	return this;
-    }
 
 	@Override
-	public DistributedEventBus<T> build()
+	public HazelcastEventBusBuilder<T> subscribe(EventHandler handler)
 	{
-		return (config == null ? new DistributedEventBus<T>(queueName, subscribers) : new DistributedEventBus<T>(queueName, config, subscribers));
+		subscribers.add(handler);
+		return this;
+	}
+
+	@Override
+	public HazelcastEventBusBuilder<T> unsubscribe(EventHandler handler)
+	{
+		subscribers.remove(handler);
+		return this;
+	}
+
+	@Override
+	public HazelcastEventBus<T> build()
+	{
+		List<EventHandler> subscriberList = Arrays.asList(subscribers.toArray(new EventHandler[0]));
+		return (config == null ? new HazelcastEventBus<T>(queueName, subscriberList) : new HazelcastEventBus<T>(queueName, config, subscriberList));
 	}
 }

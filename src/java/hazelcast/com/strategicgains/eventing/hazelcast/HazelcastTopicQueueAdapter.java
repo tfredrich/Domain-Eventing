@@ -15,7 +15,6 @@
 */
 package com.strategicgains.eventing.hazelcast;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Queue;
@@ -26,8 +25,8 @@ import com.hazelcast.core.ITopic;
  * @author toddf
  * @since Oct 5, 2012
  */
-public class HazelcastTopicQueueAdapter<T extends Serializable>
-implements Queue<T>
+public class HazelcastTopicQueueAdapter
+implements Queue<Object>
 {
 	private ITopic<Object> topic;
 
@@ -62,7 +61,7 @@ implements Queue<T>
     }
 
     @Override
-    public Iterator<T> iterator()
+    public Iterator<Object> iterator()
     {
     	throw new UnsupportedOperationException();
     }
@@ -104,47 +103,44 @@ implements Queue<T>
     }
 
     @Override
-    public boolean add(T object)
+    public boolean add(Object object)
     {
     	topic.publish(object);
     	return true;
     }
 
     @Override
-    public T element()
+    public Object element()
     {
     	throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean offer(T e)
+    public boolean offer(Object e)
     {
     	throw new UnsupportedOperationException();
     }
 
     @Override
-    public T peek()
+    public Object peek()
     {
     	throw new UnsupportedOperationException();
     }
 
     @Override
-    public T poll()
+    public Object poll()
     {
     	throw new UnsupportedOperationException();
     }
 
     @Override
-    public T remove()
+    public Object remove()
     {
     	throw new UnsupportedOperationException();
     }
 
-	/* (non-Javadoc)
-	 * @see java.util.Collection#addAll(java.util.Collection)
-	 */
     @Override
-    public boolean addAll(Collection<? extends T> c)
+    public boolean addAll(Collection<? extends Object> c)
     {
     	throw new UnsupportedOperationException();
     }
