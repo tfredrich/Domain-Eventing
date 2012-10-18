@@ -18,8 +18,6 @@ package com.strategicgains.eventing;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.strategicgains.eventing.local.LocalEventBusBuilder;
-
 
 /**
  * DomainEvents defines a static public interface for raising and handling domain events.
@@ -78,16 +76,6 @@ public class DomainEvents
 	}
 
 	/**
-	 * Construct a new Local event bus builder.
-	 * 
-	 * @return LocalEventBusBuilder
-	 */
-	public static LocalEventBusBuilder newEventBusBuilder()
-	{
-		return new LocalEventBusBuilder();
-	}
-
-	/**
 	 * Publish an event, passing it to applicable consumers asynchronously.  This method is
 	 * equivalent to calling instance().publishEvent(Object).
 	 * 
@@ -110,7 +98,7 @@ public class DomainEvents
 	
 	public static void shutdown()
 	{
-		instance().shutdownEventQueues();
+		instance().shutdownEventBusses();
 	}
 
 
@@ -141,17 +129,17 @@ public class DomainEvents
 	{
 		assert(!eventBusses.isEmpty());
 
-		for (EventBus eventQueue : eventBusses.values())
+		for (EventBus eventBus : eventBusses.values())
 		{
-			eventQueue.publish(event);
+			eventBus.publish(event);
 		}
 	}
 
-	private void shutdownEventQueues()
+	private void shutdownEventBusses()
 	{
-		for (EventBus eventQueue : eventBusses.values())
+		for (EventBus eventBus : eventBusses.values())
 		{
-			eventQueue.shutdown();
+			eventBus.shutdown();
 		}
 		
 		eventBusses.clear();

@@ -15,7 +15,8 @@
  */
 package com.strategicgains.eventing;
 
-import java.util.Queue;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author toddf
@@ -23,42 +24,51 @@ import java.util.Queue;
  */
 public abstract class EventBus
 {
-	private Queue<Object> eventQueue;
+	private EventTransport transport;
+	private Set<Class<?>> publishableEventTypes = new HashSet<Class<?>>();
 
-	public EventBus(Queue<Object> queueImpl)
+	public EventBus(EventTransport transport)
 	{
 		super();
-		this.eventQueue = queueImpl;
+		this.transport = transport;
 	}
 
-	public boolean isEmpty()
+	public boolean addPublishableEventType(Class<?> eventType)
 	{
-		return eventQueue.isEmpty();
+		return publishableEventTypes.add(eventType);
 	}
 
-	public Object poll()
+	public boolean canPublish(Class<?> eventType)
 	{
-		return eventQueue.poll();
+		if (publishableEventTypes.isEmpty()) return true;
+
+		return publishableEventTypes.contains(eventType);
 	}
 
 	public void publish(Object event)
 	{
 		if (!canPublish(event.getClass())) return;
 
-		eventQueue.add(event);
-
-		synchronized (this)
-		{
-			notify();
-		}
+		transport.publish(event);
 	}
 
-	public boolean canPublish(Class<?> eventType)
+	public void shutdown()
 	{
-		return true;
+		transport.shutdown();
 	}
 
-	public abstract void shutdown();
-	public abstract boolean subscribe(EventHandler handler);
-	public abstract boolean unsubscribe(EventHandler handler);
+	public boolean subscribe(EventHandler handler)
+	{
+		return transport.subscribe(handler);
+	}
+
+	public boolean unsubscribe(EventHandler handler)
+	{
+		return transport.unsubscribe(handler);
+	}
+	
+	protected EventTransport getTransport()
+	{
+		return transport;
+	}
 }

@@ -13,30 +13,16 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
  */
-package com.strategicgains.eventing.local;
-
-import java.util.Collection;
-
-import com.strategicgains.eventing.EventBus;
-import com.strategicgains.eventing.EventHandler;
+package com.strategicgains.eventing;
 
 /**
  * @author toddf
- * @since Feb 6, 2012
+ * @since Oct 18, 2012
  */
-public class LocalEventBus
-extends EventBus
+public interface EventTransport
 {
-	public LocalEventBus(Collection<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
-	{
-		super(new LocalEventTransport(handlers, shouldReraiseOnError, pollDelayMillis));
-	}
-
-	/**
-	 * @param value
-	 */
-    public void retryOnError(boolean value)
-    {
-    	((LocalEventTransport) getTransport()).retryOnError(value);
-    }
+	public void publish(Object event);
+    public boolean subscribe(EventHandler handler);
+    public boolean unsubscribe(EventHandler handler);
+	public void shutdown();
 }

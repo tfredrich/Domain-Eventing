@@ -24,11 +24,10 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import com.strategicgains.eventing.EventBus;
 import com.strategicgains.eventing.EventHandler;
 
 /**
- * A thread that recieves published events and sends them to subscribers.
+ * A thread that receives published events and sends them to subscribers.
  * Registered event handlers will be called for whatever event types each can process.
  * 
  * EventHandlers are called using an Executor pool that grows dynamically as needed, so
@@ -51,13 +50,13 @@ extends Thread
 	private Set<EventHandler> handlers = new LinkedHashSet<EventHandler>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
-	private EventBus eventQueue;
+	private LocalEventTransport eventQueue;
 	private long delay;
 
 
 	// SECTION: CONSTRUCTORS
 
-	public EventMonitor(EventBus queue, long pollDelayMillis)
+	public EventMonitor(LocalEventTransport queue, long pollDelayMillis)
 	{
 		super();
 		setDaemon(true);

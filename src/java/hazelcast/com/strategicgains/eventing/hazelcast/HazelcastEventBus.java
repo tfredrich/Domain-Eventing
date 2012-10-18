@@ -16,9 +16,7 @@
 package com.strategicgains.eventing.hazelcast;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
@@ -27,7 +25,7 @@ import com.strategicgains.eventing.EventBus;
 import com.strategicgains.eventing.EventHandler;
 
 /**
- * Leverages Hazelcast to create a distrubuted EventQueue implementation to
+ * Leverages Hazelcast to create a distrubuted EventBus implementation to
  * support intra-cluster eventing.
  * 
  * @author toddf
@@ -37,32 +35,17 @@ public class HazelcastEventBus<T extends Serializable>
 extends EventBus
 {
 	private String name;
-	private Set<Class<? extends Serializable>> publishableEventTypes = new HashSet<Class<? extends Serializable>>();
 
 	public HazelcastEventBus(String queueName, List<EventHandler> subscribers)
 	{
-		super(new HazelcastTopicQueueAdapter(Hazelcast.getTopic(queueName)));
+		super(new HazelcastEventTransport(Hazelcast.getTopic(queueName)));
 		addSubscribers(queueName, subscribers);
 	}
 
-	public HazelcastEventBus(String queueName, Config config,
-	    List<EventHandler> subscribers)
+	public HazelcastEventBus(String queueName, Config config, List<EventHandler> subscribers)
 	{
-		super(new HazelcastTopicQueueAdapter(Hazelcast.init(config).getTopic(queueName)));
+		super(new HazelcastEventTransport(Hazelcast.init(config).getTopic(queueName)));
 		addSubscribers(queueName, subscribers);
-	}
-
-    public boolean addPublishableEventType(Class<? extends Serializable> eventType)
-    {
-		return publishableEventTypes.add(eventType);
-    }
-
-	@Override
-	public boolean canPublish(Class<?> eventType)
-	{
-		if (publishableEventTypes.isEmpty()) return true;
-		
-		return publishableEventTypes.contains(eventType);
 	}
 
     @Override
