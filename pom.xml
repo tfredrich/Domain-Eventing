@@ -6,7 +6,7 @@
 	<url>https://github.com/tfredrich/Domain-Eventing</url>
 	<groupId>com.strategicgains.domain-eventing</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.4.0</version>
+	<version>0.4.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<parent>
@@ -48,7 +48,7 @@
 		<url>git@github.com:tfredrich/Domain-Eventing.git</url>
 		<connection>scm:git:git@github.com:tfredrich/Domain-Eventing.git</connection>
 		<developerConnection>scm:git:git@github.com:tfredrich/Domain-Eventing.git</developerConnection>
-		<tag>v0.4.0-20130110-1037</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<build>
