@@ -1,0 +1,37 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<name>domain-eventing-hazelcast</name>
+	<description>Hazelcast-specific artifacts for Domain-Eventing</description>
+	<url>https://github.com/tfredrich/Domain-Eventing</url>
+	<groupId>com.strategicgains.domain-eventing</groupId>
+	<artifactId>domain-eventing-hazelcast</artifactId>
+	<packaging>jar</packaging>
+
+	<parent>
+		<groupId>com.strategicgains.domain-eventing</groupId>
+		<artifactId>parent</artifactId>
+		<version>0.4.0-SNAPSHOT</version>
+	</parent>	
+
+	<dependencies>
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-core</artifactId>
+			<version>${project.parent.version}</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+			<version>2.4</version>
+			<type>jar</type>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<defaultGoal>compile</defaultGoal>
+		<sourceDirectory>src/java</sourceDirectory>
+		<testSourceDirectory>test/java</testSourceDirectory>
+	</build>
+</project>

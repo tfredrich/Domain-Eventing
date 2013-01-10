@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src/java/common"/>
-	<classpathentry kind="src" path="test/java/common"/>
-	<classpathentry kind="src" path="src/java/hazelcast"/>
-	<classpathentry kind="src" path="test/java/hazelcast"/>
+	<classpathentry kind="src" path="hazelcast/src/java"/>
+	<classpathentry kind="src" path="core/test/java"/>
+	<classpathentry kind="src" path="core/src/java"/>
+	<classpathentry kind="src" path="hazelcast/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="lib/hazelcast/hazelcast-2.1.2.jar"/>
