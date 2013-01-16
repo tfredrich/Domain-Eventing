@@ -50,6 +50,62 @@ Event Flow
 	</tr>
 </table>
 
+Maven Usage
+===========
+Stable:
+```xml
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-core</artifactId>
+			<version>0.4.0</version>
+		</dependency>
+```
+OR (for hazelcast-clustered eventing):
+```xml
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-hazelcast</artifactId>
+			<version>0.4.0</version>
+		</dependency>
+```
+Development:
+```xml
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-core</artifactId>
+			<version>0.4.1-SNAPSHOT</version>
+		</dependency>
+```
+OR (for hazelcast-clustered eventing):
+```xml
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-hazelcast</artifactId>
+			<version>0.4.1-SNAPSHOT</version>
+		</dependency>
+```
+
+Or download the jar directly from: 
+http://search.maven.org/#search%7Cga%7C1%7C%22domain-eventing%22
+
+Note that to use the SNAPSHOT version, you must enable snapshots and a repository in your pom file as follows:
+```xml
+  <profiles>
+    <profile>
+       <id>allow-snapshots</id>
+          <activation><activeByDefault>true</activeByDefault></activation>
+       <repositories>
+         <repository>
+           <id>snapshots-repo</id>
+           <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+           <releases><enabled>false</enabled></releases>
+           <snapshots><enabled>true</enabled></snapshots>
+         </repository>
+       </repositories>
+     </profile>
+  </profiles>
+```
+
 Usage
 =====
 1. Implement *EventHandler* interface in class(es) to process appropriate events.
