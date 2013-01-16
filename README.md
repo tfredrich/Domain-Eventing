@@ -57,7 +57,7 @@ Stable:
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-core</artifactId>
-			<version>0.4.0</version>
+			<version>0.4.1</version>
 		</dependency>
 ```
 OR (for hazelcast-clustered eventing):
@@ -65,7 +65,7 @@ OR (for hazelcast-clustered eventing):
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-hazelcast</artifactId>
-			<version>0.4.0</version>
+			<version>0.4.1</version>
 		</dependency>
 ```
 Development:
@@ -73,7 +73,7 @@ Development:
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-core</artifactId>
-			<version>0.4.1-SNAPSHOT</version>
+			<version>0.4.2-SNAPSHOT</version>
 		</dependency>
 ```
 OR (for hazelcast-clustered eventing):
@@ -81,7 +81,7 @@ OR (for hazelcast-clustered eventing):
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-hazelcast</artifactId>
-			<version>0.4.1-SNAPSHOT</version>
+			<version>0.4.2-SNAPSHOT</version>
 		</dependency>
 ```
 
@@ -134,7 +134,15 @@ BTW, the above process is the same the DomainEvents manages for you.
 
 Release Notes
 =============
-### 0.3.0 - Under development (branch 'master')
+### 0.4.1 - Released 16 Jan 2013
+* Removed Ant build-related files
+* Ensured Java 1.6 compatible artifact is released.
+
+### 0.4.0 - Released 10 Jan 2013
+* Introduced Maven build
+* Released to Maven Central repository
+
+### 0.3.0
 * Introduced HazelCast for seamless intra-cluster (cross-node, multi-JVM) domain eventing.
 
 ### 0.2.0 - June 27, 2012
