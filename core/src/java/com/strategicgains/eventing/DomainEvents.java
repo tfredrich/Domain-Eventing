@@ -27,20 +27,9 @@ import java.util.Map;
  * Domain events are publish-subscribe, where when an event is raised, all appropriate
  * EventHandler instances are notified of an event, if they have subscribed and handles() returns
  * true for the given event class.
- * <p/>
- * To utilize domain events in your application:
- * <ol>
- * <li>Implement EventHandler sub-class(es) for processing the events, overriding the handles(Class)
- * method to describe which event types the handler can process.</li>
- * <li>DomainEvents.register(new <EventHandlerSubType>()); // In main() or startup for each EventHandler.</li>
- * <li>(optional) DomainEvents.useDistributedEvents(); // Before startMonitoring() called to support eventing within a cluster.
- * <li>DomainEvents.startMonitoring(); // In main() when ready to process events.
- * <li>Call DomainEvents.raise(new DomainEventSubType()) wherever domain events should be raised.
- * <li>DomainEvents.stopMonitoring(); // On application shutdown (e.g. in main()).
- * </ol>
  * 
- * All raised DomainEvent instances are handled asynchronously, in a separate Thread, which is
- * the EventMonitor managed by DomainEvents.
+ * All raised DomainEvent instances are handled asynchronously.  However, they may NOT be published
+ * asynchronously, depending on the underlying transport implementation.
  * 
  * @author toddf
  * @since May 12, 2011
@@ -76,8 +65,23 @@ public class DomainEvents
 	}
 
 	/**
-	 * Publish an event, passing it to applicable consumers asynchronously.  This method is
-	 * equivalent to calling instance().publishEvent(Object).
+	 * Publish an event to a named event bus.
+	 * The name of the bus is assigned during a call to addBus(String, EventBus).
+	 * <p/>
+	 * Event publishing can only occur after event busses are setup.
+	 * 
+	 * @param name the name of a specific event bus.
+	 * @param event the Object as an event to publish.
+	 */
+	public static void publish(String name, Object event)
+	{
+		instance().publishEvent(name, event);
+	}
+
+	/**
+	 * Publish an event, passing it to applicable consumers asynchronously.
+	 * <p/>
+	 * Event publishing can only occur after event busses are setup.
 	 * 
 	 * @param event the Object as an event to publish.
 	 */
@@ -86,16 +90,35 @@ public class DomainEvents
 		instance().publishEvent(event);
 	}
 
+	/**
+	 * Register an event bus with the DomainEvents manager.
+	 * 
+	 * @param name the event bus name.  Must be unique within the DomainEvents manager.
+	 * @param bus a newly-constructed EventBus instance.
+	 * @return true if the name is unique and the event bus was added.  Otherwise, false.
+	 */
 	public static boolean addBus(String name, EventBus bus)
 	{
 		return instance().addEventBus(name, bus);
 	}
 	
+	/**
+	 * Get an event bus by name.
+	 * 
+	 * @param name the name of an event bus given at the time of calling addBus(String, EventBus).
+	 * @return an EventBus instance, or null if 'name' not found.
+	 */
 	public static EventBus getBus(String name)
 	{
 		return instance().getEventBus(name);
 	}
 	
+	/**
+	 * Shutdown all the even busses, releasing their resources cleanly.
+	 * <p/>
+	 * shutdown() should be called at application termination to cleanly release
+	 * all consumed resources.
+	 */
 	public static void shutdown()
 	{
 		instance().shutdownEventBusses();
@@ -119,20 +142,44 @@ public class DomainEvents
 	{
 		return eventBusses.get(name);
 	}
+	
+	private boolean hasEventBusses()
+	{
+		return (eventBusses != null);
+	}
 
 	/**
-	 * Raise an event, passing it to applicable consumers asynchronously.
+	 * Raise an event on all event busses, passing it to applicable consumers asynchronously.
 	 * 
 	 * @param event
 	 */
 	private void publishEvent(Object event)
 	{
-		assert(!eventBusses.isEmpty());
+		assert(hasEventBusses());
 
 		for (EventBus eventBus : eventBusses.values())
 		{
 			eventBus.publish(event);
 		}
+	}
+
+	/**
+	 * Raise an event on a named event bus, passing it to applicable consumers asynchronously.
+	 * 
+	 * @param name the name of an event bus, assigned during calls to addEventBus(String, EventBus).
+	 * @param event the event to publish.
+	 */
+	private void publishEvent(String name, Object event)
+	{
+		assert(hasEventBusses());
+		EventBus eventBus = getEventBus(name);
+		
+		if (eventBus == null)
+		{
+			throw new RuntimeException("Unknown event bus name: " + name);
+		}
+
+		eventBus.publish(event);
 	}
 
 	private void shutdownEventBusses()
