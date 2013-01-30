@@ -16,11 +16,11 @@
 package com.strategicgains.eventing.local;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -46,7 +46,7 @@ extends Thread
 	
 	// SECTION: INSTANCE METHODS
 
-	private Map<Class<?>, List<EventHandler>> handlersByEvent = new HashMap<Class<?>, List<EventHandler>>();
+	private Map<Class<?>, List<EventHandler>> handlersByEvent = new ConcurrentHashMap<Class<?>, List<EventHandler>>();
 	private Set<EventHandler> handlers = new LinkedHashSet<EventHandler>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
@@ -140,6 +140,11 @@ extends Thread
 		clearAllHandlers();
 	}
 
+	/**
+	 * Runs each appropriate EventHandler in an Executor.
+	 * 
+	 * @param event
+	 */
 	private void processEvent(final Object event)
     {
 	    System.out.println("Processing event: " + event.toString());
