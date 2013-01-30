@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>com.strategicgains.domain-eventing</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.4.2</version>
+		<version>0.4.3-SNAPSHOT</version>
 	</parent>
 
 	<build>
