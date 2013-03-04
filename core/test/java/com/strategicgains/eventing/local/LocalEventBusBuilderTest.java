@@ -56,7 +56,7 @@ public class LocalEventBusBuilderTest
 	{
 		assertEquals(0, handler.getCallCount());
 		eventBus.publish(new HandledEvent());
-		Thread.sleep(100);
+		Thread.sleep(150);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -78,7 +78,7 @@ public class LocalEventBusBuilderTest
 		eventBus.publish(new IgnoredEvent());
 		eventBus.publish(new HandledEvent());
 		eventBus.publish(new IgnoredEvent());
-		Thread.sleep(100);
+		Thread.sleep(150);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -90,7 +90,7 @@ public class LocalEventBusBuilderTest
 	{
 		assertEquals(0, ignoredHandler.getCallCount());
 		eventBus.publish(new IgnoredEvent());
-		Thread.sleep(5);
+		Thread.sleep(150);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(1, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -109,7 +109,7 @@ public class LocalEventBusBuilderTest
 
 		assertEquals(0, handler.getCallCount());
 		eventBus.publish(new ErroredEvent());
-		Thread.sleep(100);
+		Thread.sleep(150);
 		assertEquals(6, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -121,7 +121,7 @@ public class LocalEventBusBuilderTest
 	{
 		assertEquals(0, handler.getCallCount());
 		eventBus.publish(new ErroredEvent());
-		Thread.sleep(100);
+		Thread.sleep(150);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -137,7 +137,7 @@ public class LocalEventBusBuilderTest
 		eventBus.publish(new LongEvent());
 		eventBus.publish(new LongEvent());
 		eventBus.publish(new LongEvent());
-		Thread.sleep(100);
+		Thread.sleep(150);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(5, longHandler.getCallCount());

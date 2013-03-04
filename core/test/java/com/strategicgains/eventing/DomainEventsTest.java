@@ -65,7 +65,7 @@ public class DomainEventsTest
 	{
 		assertEquals(0, handler.getCallCount());
 		DomainEvents.publish(new HandledEvent());
-		Thread.sleep(50);
+		Thread.sleep(150);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -87,7 +87,7 @@ public class DomainEventsTest
 		DomainEvents.publish(new IgnoredEvent());
 		DomainEvents.publish(new HandledEvent());
 		DomainEvents.publish(new IgnoredEvent());
-		Thread.sleep(50);
+		Thread.sleep(150);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -99,7 +99,7 @@ public class DomainEventsTest
 	{
 		assertEquals(0, ignoredHandler.getCallCount());
 		DomainEvents.publish(new IgnoredEvent());
-		Thread.sleep(5);
+		Thread.sleep(150);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(1, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -112,7 +112,7 @@ public class DomainEventsTest
 		((LocalEventBus) DomainEvents.getBus("primary")).retryOnError(true);
 		assertEquals(0, handler.getCallCount());
 		DomainEvents.publish(new ErroredEvent());
-		Thread.sleep(50);
+		Thread.sleep(150);
 		assertEquals(6, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -124,7 +124,7 @@ public class DomainEventsTest
 	{
 		assertEquals(0, handler.getCallCount());
 		DomainEvents.publish(new ErroredEvent());
-		Thread.sleep(50);
+		Thread.sleep(150);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -140,7 +140,7 @@ public class DomainEventsTest
 		DomainEvents.publish(new LongEvent());
 		DomainEvents.publish(new LongEvent());
 		DomainEvents.publish(new LongEvent());
-		Thread.sleep(100);
+		Thread.sleep(150);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		System.out.println("longHandler instance=" + longHandler.toString());
@@ -165,7 +165,7 @@ public class DomainEventsTest
 		DomainEvents.publish(new IgnoredEvent());
 		DomainEvents.publish(new HandledEvent());
 		DomainEvents.publish(new IgnoredEvent());
-		Thread.sleep(50);
+		Thread.sleep(150);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -195,7 +195,7 @@ public class DomainEventsTest
 		DomainEvents.publish(new IgnoredEvent());
 		DomainEvents.publish(new HandledEvent());
 		DomainEvents.publish(new IgnoredEvent());
-		Thread.sleep(50);
+		Thread.sleep(150);
 		assertEquals(10, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
