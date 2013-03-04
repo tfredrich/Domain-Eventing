@@ -59,7 +59,7 @@ Stable:
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-core</artifactId>
-			<version>0.4.2</version>
+			<version>0.4.3</version>
 		</dependency>
 ```
 OR (for hazelcast-clustered eventing):
@@ -67,7 +67,7 @@ OR (for hazelcast-clustered eventing):
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-hazelcast</artifactId>
-			<version>0.4.2</version>
+			<version>0.4.3</version>
 		</dependency>
 ```
 Development:
@@ -75,7 +75,7 @@ Development:
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-core</artifactId>
-			<version>0.4.3-SNAPSHOT</version>
+			<version>0.4.4-SNAPSHOT</version>
 		</dependency>
 ```
 OR (for hazelcast-clustered eventing):
@@ -83,7 +83,7 @@ OR (for hazelcast-clustered eventing):
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-hazelcast</artifactId>
-			<version>0.4.3-SNAPSHOT</version>
+			<version>0.4.4-SNAPSHOT</version>
 		</dependency>
 ```
 
