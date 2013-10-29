@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/tfredrich/Domain-Eventing.png?label=ready)](https://waffle.io/tfredrich/Domain-Eventing)  
 [![Build Status](https://buildhive.cloudbees.com/job/tfredrich/job/Domain-Eventing/badge/icon)](https://buildhive.cloudbees.com/job/tfredrich/job/Domain-Eventing/)
 
 Overview
