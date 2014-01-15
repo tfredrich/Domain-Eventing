@@ -124,7 +124,7 @@ extends Thread
 			catch (InterruptedException e)
 			{
 				e.printStackTrace();
-				System.out.println("Interrupted (use shutdown() to terminate).  Continuing...");
+				System.err.println("Interrupted (use shutdown() to terminate).  Continuing...");
 				continue;
 			}
 
