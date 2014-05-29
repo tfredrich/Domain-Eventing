@@ -12,8 +12,11 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
+ */
 package com.strategicgains.eventing.hazelcast;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.hazelcast.core.ITopic;
 import com.strategicgains.eventing.EventHandler;
@@ -27,17 +30,28 @@ public class HazelcastEventTransport
 implements EventTransport
 {
 	private ITopic<Object> topic;
+	private Map<EventHandler, String> subscriptions = new ConcurrentHashMap<EventHandler, String>();
 
-    public HazelcastEventTransport(ITopic<Object> topic)
+	protected HazelcastEventTransport()
+	{
+		super();
+	}
+
+	public HazelcastEventTransport(ITopic<Object> topic)
+	{
+		this();
+		setTopic(topic);
+	}
+
+	protected void setTopic(ITopic<Object> aTopic)
     {
-    	super();
-    	this.topic = topic;
+		this.topic = aTopic;
     }
 
 	@Override
 	public void publish(Object event)
 	{
-    	topic.publish(event);
+		topic.publish(event);
 	}
 
 	@Override
@@ -46,17 +60,24 @@ implements EventTransport
 		topic.destroy();
 	}
 
-    @Override
-    public boolean subscribe(EventHandler handler)
-    {
-	    topic.addMessageListener(new EventHandlerAdapter(handler));
-	    return true;
-    }
+	@Override
+	public boolean subscribe(EventHandler handler)
+	{
+		String listenerId = topic.addMessageListener(new EventHandlerAdapter(handler));
+		subscriptions.put(handler, listenerId);
+		return true;
+	}
 
-    @Override
-    public boolean unsubscribe(EventHandler handler)
-    {
-	    topic.removeMessageListener(new EventHandlerAdapter(handler));
-	    return true;
-    }
+	@Override
+	public boolean unsubscribe(EventHandler handler)
+	{
+		String listenerId = subscriptions.get(handler);
+
+		if (listenerId != null)
+		{
+			return topic.removeMessageListener(listenerId);
+		}
+
+		return false;
+	}
 }

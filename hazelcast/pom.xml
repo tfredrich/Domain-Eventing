@@ -4,7 +4,6 @@
 	<name>Domain-Eventing-Hazelcast</name>
 	<description>Hazelcast-specific artifacts for Domain-Eventing</description>
 	<url>https://github.com/tfredrich/Domain-Eventing</url>
-	<groupId>com.strategicgains.domain-eventing</groupId>
 	<artifactId>domain-eventing-hazelcast</artifactId>
 	<packaging>jar</packaging>
 
@@ -22,10 +21,9 @@
 			<type>jar</type>
 		</dependency>
 		<dependency>
-			<groupId>com.hazelcast</groupId>
-			<artifactId>hazelcast</artifactId>
-			<version>2.5</version>
-			<type>jar</type>
+		    <groupId>com.hazelcast</groupId>
+		    <artifactId>hazelcast</artifactId>
+		    <version>3.3-EA</version>
 		</dependency>
 	</dependencies>
 

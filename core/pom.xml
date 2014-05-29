@@ -4,7 +4,6 @@
 	<name>Domain-Eventing-Core</name>
 	<description>Core/Common Objects for Domain-Eventing</description>
 	<url>https://github.com/tfredrich/Domain-Eventing</url>
-	<groupId>com.strategicgains.domain-eventing</groupId>
 	<artifactId>domain-eventing-core</artifactId>
 	<packaging>jar</packaging>
 

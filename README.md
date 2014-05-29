@@ -111,6 +111,12 @@ Note that to use the SNAPSHOT version, you must enable snapshots and a repositor
 
 Release Notes
 =============
+### 0.4.3 - Released 29 May 2014
+* Upgraded to Hazelcast 3.3 EA
+
+### 0.4.3 - Released 4 Mar 2013
+* Updated Hazelcast from 2.4 to 2.5
+
 ### 0.4.2 - Released 30 Jan 2013
 * Introduced DomainEvents.publish(String, EventBus) to enable publishing to a specific, named EventBus implementation.
 * Changed internal Map, handlersByEvent, to a ConcurrentHashMap instead of a HashMap, since it does get manipulated during execution.

@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.ITopic;
+import com.hazelcast.core.HazelcastInstance;
 import com.strategicgains.eventing.EventBus;
 import com.strategicgains.eventing.EventHandler;
 
@@ -34,34 +34,31 @@ import com.strategicgains.eventing.EventHandler;
 public class HazelcastEventBus<T extends Serializable>
 extends EventBus
 {
-	private String name;
+	private HazelcastInstance hazelcast;
 
 	public HazelcastEventBus(String queueName, List<EventHandler> subscribers)
 	{
-		super(new HazelcastEventTransport(Hazelcast.getTopic(queueName)));
-		addSubscribers(queueName, subscribers);
+		this(queueName, new Config(), subscribers);
 	}
 
 	public HazelcastEventBus(String queueName, Config config, List<EventHandler> subscribers)
 	{
-		super(new HazelcastEventTransport(Hazelcast.init(config).getTopic(queueName)));
-		addSubscribers(queueName, subscribers);
+		super(new HazelcastEventTransport());
+		hazelcast = Hazelcast.newHazelcastInstance(config);
+		((HazelcastEventTransport) getTransport()).setTopic(hazelcast.getTopic(queueName));
+		addSubscribers(subscribers);
 	}
 
     @Override
     public boolean subscribe(EventHandler handler)
     {
-		ITopic<Object> t = Hazelcast.getTopic(name);
-		t.addMessageListener(new EventHandlerAdapter(handler));
-		return true;
+    	return getTransport().subscribe(handler);
     }
 
     @Override
     public boolean unsubscribe(EventHandler handler)
     {
-		ITopic<Object> t = Hazelcast.getTopic(name);
-		t.removeMessageListener(new EventHandlerAdapter(handler));
-		return true;
+    	return getTransport().unsubscribe(handler);
     }
 
 	@Override
@@ -74,13 +71,11 @@ extends EventBus
 	 * @param queueName the name of the event bus.
 	 * @param subscribers a List of EventHandler instances that subscribed to the event bus.
 	 */
-	private void addSubscribers(String queueName, List<EventHandler> subscribers)
+	private void addSubscribers(List<EventHandler> subscribers)
 	{
-		ITopic<Object> t = Hazelcast.getTopic(queueName);
-
 		for (EventHandler handler : subscribers)
 		{
-			t.addMessageListener(new EventHandlerAdapter(handler));
+			getTransport().subscribe(handler);
 		}
 	}
 }
