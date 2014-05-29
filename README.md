@@ -60,7 +60,7 @@ Stable:
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-core</artifactId>
-			<version>0.4.3</version>
+			<version>0.4.4</version>
 		</dependency>
 ```
 OR (for hazelcast-clustered eventing):
@@ -68,7 +68,7 @@ OR (for hazelcast-clustered eventing):
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-hazelcast</artifactId>
-			<version>0.4.3</version>
+			<version>0.4.4</version>
 		</dependency>
 ```
 Development:
@@ -76,7 +76,7 @@ Development:
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-core</artifactId>
-			<version>0.4.4-SNAPSHOT</version>
+			<version>0.4.5-SNAPSHOT</version>
 		</dependency>
 ```
 OR (for hazelcast-clustered eventing):
@@ -84,7 +84,7 @@ OR (for hazelcast-clustered eventing):
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-hazelcast</artifactId>
-			<version>0.4.4-SNAPSHOT</version>
+			<version>0.4.5-SNAPSHOT</version>
 		</dependency>
 ```
 
@@ -111,7 +111,7 @@ Note that to use the SNAPSHOT version, you must enable snapshots and a repositor
 
 Release Notes
 =============
-### 0.4.3 - Released 29 May 2014
+### 0.4.4 - Released 29 May 2014
 * Upgraded to Hazelcast 3.3 EA
 
 ### 0.4.3 - Released 4 Mar 2013
