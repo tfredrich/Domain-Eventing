@@ -88,7 +88,7 @@ implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
     	return this;
     }
     
-    public LocalEventBusBuilder addPublishalbeEventType(Class<?> eventType)
+    public LocalEventBusBuilder addPublishableEventType(Class<?> eventType)
     {
     	publishableEventTypes.add(eventType);
     	return this;

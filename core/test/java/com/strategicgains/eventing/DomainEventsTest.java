@@ -179,7 +179,7 @@ public class DomainEventsTest
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
-			.addPublishalbeEventType(HandledEvent.class)
+			.addPublishableEventType(HandledEvent.class)
 			.build();
 		DomainEvents.addBus("secondary", q);
 
