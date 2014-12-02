@@ -111,6 +111,9 @@ Note that to use the SNAPSHOT version, you must enable snapshots and a repositor
 
 Release Notes
 =============
+### 0.4.5 - Released 2 Dec 2014
+* Fixed misspelling of method LocalEventBusBuilder.addPublishableEventType().
+
 ### 0.4.4 - Released 29 May 2014
 * Upgraded to Hazelcast 3.3 EA
 
