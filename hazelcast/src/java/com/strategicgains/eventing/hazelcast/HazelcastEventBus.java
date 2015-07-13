@@ -49,18 +49,6 @@ extends EventBus
 		addSubscribers(subscribers);
 	}
 
-    @Override
-    public boolean subscribe(EventHandler handler)
-    {
-    	return getTransport().subscribe(handler);
-    }
-
-    @Override
-    public boolean unsubscribe(EventHandler handler)
-    {
-    	return getTransport().unsubscribe(handler);
-    }
-
 	@Override
 	public void shutdown()
 	{
