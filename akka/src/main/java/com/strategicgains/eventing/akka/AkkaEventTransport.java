@@ -15,6 +15,11 @@
 */
 package com.strategicgains.eventing.akka;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import akka.actor.ActorSystem;
+
 import com.strategicgains.eventing.EventHandler;
 import com.strategicgains.eventing.EventTransport;
 
@@ -25,25 +30,38 @@ import com.strategicgains.eventing.EventTransport;
 public class AkkaEventTransport
 implements EventTransport
 {
+	private ActorSystem system;
+	private Set<EventHandler> subscribers = new LinkedHashSet<EventHandler>();
+
+	public AkkaEventTransport(ActorSystem actorSystem)
+    {
+		super();
+		this.system = actorSystem;
+    }
+
 	@Override
 	public void publish(Object event)
 	{
+		system.eventStream().publish(event);
 	}
 
 	@Override
 	public boolean subscribe(EventHandler handler)
 	{
-		return false;
+//		system.eventStream().subscribe(subscriber, channel);
+		return subscribers.add(handler);
 	}
 
 	@Override
 	public boolean unsubscribe(EventHandler handler)
 	{
-		return false;
+//		system.eventStream().unsubscribe(subscriber);
+		return subscribers.remove(handler);
 	}
 
 	@Override
 	public void shutdown()
 	{
+		system.shutdown();
 	}
 }

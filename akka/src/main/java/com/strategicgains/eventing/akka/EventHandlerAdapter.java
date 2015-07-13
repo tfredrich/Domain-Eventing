@@ -15,35 +15,32 @@
 */
 package com.strategicgains.eventing.akka;
 
-import java.util.List;
+import akka.actor.UntypedActor;
 
-import akka.actor.ActorSystem;
-
-import com.strategicgains.eventing.EventBus;
 import com.strategicgains.eventing.EventHandler;
 
 /**
  * @author tfredrich
  * @since Jul 13, 2015
  */
-public class AkkaEventBus
-extends EventBus
+public class EventHandlerAdapter
+extends UntypedActor
 {
-	public AkkaEventBus()
-    {
-		this(ActorSystem.create());
-    }
+	private EventHandler handler;
 
-	public AkkaEventBus(ActorSystem actorSystem)
-    {
-		super(new AkkaEventTransport(actorSystem));
-    }
+	public EventHandlerAdapter(EventHandler handler)
+	{
+		super();
+		this.handler = handler;
+	}
 
-	public void subscribeAll(List<EventHandler> handlers)
-    {
-		for (EventHandler handler : handlers)
+	@Override
+	public void onReceive(Object event)
+	throws Exception
+	{
+		if (event != null && handler.handles(event.getClass()))
 		{
-			getTransport().subscribe(handler);
+			handler.handle(event);
 		}
-    }
+	}
 }

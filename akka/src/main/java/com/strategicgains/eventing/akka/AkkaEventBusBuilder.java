@@ -15,6 +15,12 @@
 */
 package com.strategicgains.eventing.akka;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import akka.actor.ActorSystem;
+
 import com.strategicgains.eventing.EventBusBuilder;
 import com.strategicgains.eventing.EventHandler;
 
@@ -25,21 +31,39 @@ import com.strategicgains.eventing.EventHandler;
 public class AkkaEventBusBuilder
 implements EventBusBuilder<AkkaEventBus, AkkaEventBusBuilder>
 {
+	private ActorSystem actorSystem;
+	private Set<EventHandler> subscribers = new LinkedHashSet<EventHandler>();
+
+	public AkkaEventBusBuilder()
+	{
+		super();
+	}
+
+	public AkkaEventBusBuilder actorSystem(ActorSystem actorSystem)
+	{
+		this.actorSystem = actorSystem;
+		return this;
+	}
+
 	@Override
     public AkkaEventBusBuilder subscribe(EventHandler handler)
     {
-	    return null;
+		subscribers.add(handler);
+	    return this;
     }
 
 	@Override
     public AkkaEventBusBuilder unsubscribe(EventHandler handler)
     {
-	    return null;
+		subscribers.remove(handler);
+	    return this;
     }
 
 	@Override
     public AkkaEventBus build()
     {
-	    return null;
+		AkkaEventBus bus = (actorSystem == null ? new AkkaEventBus() : new AkkaEventBus(actorSystem));
+		bus.subscribeAll(Arrays.asList(subscribers.toArray(new EventHandler[0])));
+	    return bus;
     }
 }
