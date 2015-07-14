@@ -31,7 +31,7 @@ extends EventBus
 {
 	public AkkaEventBus()
     {
-		this(ActorSystem.create());
+		this(ActorSystem.create("AkkaEventBus"));
     }
 
 	public AkkaEventBus(ActorSystem actorSystem)

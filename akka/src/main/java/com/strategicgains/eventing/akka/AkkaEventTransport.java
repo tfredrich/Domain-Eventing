@@ -15,10 +15,12 @@
 */
 package com.strategicgains.eventing.akka;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.event.japi.ScanningEventBus;
 
 import com.strategicgains.eventing.EventHandler;
 import com.strategicgains.eventing.EventTransport;
@@ -31,37 +33,76 @@ public class AkkaEventTransport
 implements EventTransport
 {
 	private ActorSystem system;
-	private Set<EventHandler> subscribers = new LinkedHashSet<EventHandler>();
+	private Map<EventHandler, ActorRef> subscribers = new ConcurrentHashMap<EventHandler, ActorRef>();
+	private AkkaBusImpl akkaBus;
 
 	public AkkaEventTransport(ActorSystem actorSystem)
     {
 		super();
 		this.system = actorSystem;
+		akkaBus = new AkkaBusImpl();
     }
 
 	@Override
 	public void publish(Object event)
 	{
-		system.eventStream().publish(event);
+		akkaBus.publish(event);
 	}
 
 	@Override
 	public boolean subscribe(EventHandler handler)
 	{
-//		system.eventStream().subscribe(subscriber, channel);
-		return subscribers.add(handler);
+		ActorRef adapter = system.actorOf(EventHandlerActor.props(handler));
+		akkaBus.subscribe(adapter, Object.class);
+		subscribers.put(handler, adapter);
+		return true;
 	}
 
 	@Override
 	public boolean unsubscribe(EventHandler handler)
 	{
-//		system.eventStream().unsubscribe(subscriber);
-		return subscribers.remove(handler);
+		ActorRef adapter = subscribers.get(handler);
+
+		if (adapter != null)
+		{
+			akkaBus.unsubscribe(adapter);
+			return (subscribers.remove(handler) != null);
+		}
+
+		return false;
 	}
 
 	@Override
 	public void shutdown()
 	{
 		system.shutdown();
+	}
+
+	private class AkkaBusImpl
+	extends ScanningEventBus<Object, ActorRef, Class<?>>
+	{
+		@Override
+	    public int compareClassifiers(Class<?> a, Class<?> b)
+	    {
+		    return a.getName().compareTo(b.getName());
+	    }
+
+		@Override
+	    public int compareSubscribers(ActorRef a, ActorRef b)
+	    {
+		    return a.compareTo(b);
+	    }
+
+		@Override
+	    public boolean matches(Class<?> type, Object event)
+	    {
+		    return true;
+	    }
+
+		@Override
+	    public void publish(Object event, ActorRef subscriber)
+	    {
+			subscriber.tell(event, ActorRef.noSender());
+	    }
 	}
 }

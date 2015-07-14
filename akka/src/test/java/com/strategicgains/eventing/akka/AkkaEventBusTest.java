@@ -17,6 +17,8 @@ package com.strategicgains.eventing.akka;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +31,8 @@ import com.strategicgains.eventing.EventHandler;
  */
 public class AkkaEventBusTest
 {
+	private static final long PAUSE_MILLIS = 100;
+
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
@@ -38,6 +42,7 @@ public class AkkaEventBusTest
 	public void setup()
 	{
 		queue = new AkkaEventBus();
+		queue.subscribeAll(Arrays.asList(handler, ignoredHandler, longHandler));
 	}
 	
 	@After
@@ -52,7 +57,7 @@ public class AkkaEventBusTest
 	{
 		assertEquals(0, handler.getCallCount());
 		queue.publish(new HandledEvent());
-		Thread.sleep(50);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -74,7 +79,7 @@ public class AkkaEventBusTest
 		queue.publish(new IgnoredEvent());
 		queue.publish(new HandledEvent());
 		queue.publish(new IgnoredEvent());
-		Thread.sleep(50);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -98,7 +103,7 @@ public class AkkaEventBusTest
 	{
 		assertEquals(0, handler.getCallCount());
 		queue.publish(new ErroredEvent());
-		Thread.sleep(50);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -114,7 +119,7 @@ public class AkkaEventBusTest
 		queue.publish(new LongEvent());
 		queue.publish(new LongEvent());
 		queue.publish(new LongEvent());
-		Thread.sleep(50);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(5, longHandler.getCallCount());
@@ -138,7 +143,7 @@ public class AkkaEventBusTest
 		queue.publish(new IgnoredEvent());
 		queue.publish(new HandledEvent());
 		queue.publish(new IgnoredEvent());
-		Thread.sleep(50);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
