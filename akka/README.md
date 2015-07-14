@@ -16,34 +16,32 @@ We need an EventBus implementation to pass messages on. We'll use Akka to pass m
 Using a Builder
 ---------------
 
-'''Java
+```java
+// Allocation one or more EventHandler implementations.
+DomainEventsTestHandler handler = new DomainEventsTestHandler();
 
-	// Allocation one or more EventHandler implementations.
-	DomainEventsTestHandler handler = new DomainEventsTestHandler();
+EventBus akkaBus = new AkkaEventBusBuilder()
+	.actorSystem(actorSystem)					// Optional. Configure your own actor system.
+	.subscribe(handler)							// Subscribe your EventHandler implementation(s).
+    .build();									// Build the EventBus.
 
-	EventBus akkaBus = new AkkaEventBusBuilder()
-		.actorSystem(actorSystem)					// Optional. Configure your own actor system.
-		.subscribe(handler)							// Subscribe your EventHandler implementation(s).
-	    .build();									// Build the EventBus.
-
-	akkaBus.addPublishableEventType(Message.class);	// Optional. Denote the event Class(es) that this bus can publish.
-'''
+akkaBus.addPublishableEventType(Message.class);	// Optional. Denote the event Class(es) that this bus can publish.
+```
 
 Using Constructors
 ------------------
 
-'''Java
+```java
+EventBus akkaBus = new AkkaEventBus();			// Uses the default ActorSystem, named 'AkkaDomainEventing'
+// Or...
+EventBus akkaBus = new AkkaEventBus(actorSystem);	// Use your configured ActorSystem.
 
-	EventBus akkaBus = new AkkaEventBus();			// Uses the default ActorSystem, named 'AkkaDomainEventing'
-	// Or...
-	EventBus akkaBus = new AkkaEventBus(actorSystem);	// Use your configured ActorSystem.
+akkaBus.addPublishableEventType(Message.class);	// Optional. Denote the event Class(es) that this bus can publish.
 
-	akkaBus.addPublishableEventType(Message.class);	// Optional. Denote the event Class(es) that this bus can publish.
-
-	// Allocation one or more EventHandler implementations.
-	DomainEventsTestHandler handler = new DomainEventsTestHandler();
-	akkaBus.subscribe(handler);						// Subscribe your EventHandler implementation(s).
-'''
+// Allocation one or more EventHandler implementations.
+DomainEventsTestHandler handler = new DomainEventsTestHandler();
+akkaBus.subscribe(handler);						// Subscribe your EventHandler implementation(s).
+```
 
 Configuring DomainEvents
 ========================
@@ -55,10 +53,9 @@ for each bus must be unique.
 For example, you may want a 'local' bus that is configured to send certain events only within the JVM and a 'remote' bus that sends events to JVMs in a cluster. DomainEvents will
 determine which events to send to which bus using the addPublishableEventType() method on each EventBus. Otherwise, it sends all events to all buses.
 
-'''Java
-
-	DomainEvents.addEventBus('akka', akkaBus);
-''' 
+```java
+DomainEvents.addEventBus('akka', akkaBus);
+```
 
 That's all there is to it. Now we're ready to publish events.
 
@@ -67,30 +64,29 @@ Publishing Events
 
 Send your event POJOs to the event buses configured in DomainEvents.
 
-'''Java
+```java
+// Define arbitrary POJOs to describe your event(s)
+public class Event
+{
+	private String data;
 
-	// Define arbitrary POJOs to describe your event(s)
-	public class Event
+	public Event(String data)
 	{
-		private String data;
-
-		public Event(String data)
-		{
-			this.data = data;
-		}
-
-		public String getData()
-		{
-			return data;
-		}
+		this.data = data;
 	}
 
-	...
+	public String getData()
+	{
+		return data;
+	}
+}
+
+...
 
 
-	// Publish a new event...
-	DomainEvents.publish(new Event("something happened!"));
-'''
+// Publish a new event...
+DomainEvents.publish(new Event("something happened!"));
+```
 
 That's all. Events are just simply plain-old Java objects. DomainEvents will take care of delivering your message to the appropriate, configured EventBus instances.
 
@@ -107,40 +103,39 @@ An EventHandler is very simple. It only has two methods to implement:
 
 Here, we'll create an example for the above event bus configuration to handle Event POJOs described above, simply printing out the string 'data' property on the event.
  
-'''Java
-
-	public class DomainEventsTestHandler
-	implements EventHandler
+```java
+public class DomainEventsTestHandler
+implements EventHandler
+{
+	/**
+	 * Process the incoming message, which will be of type Event, because
+	 * Domain-Events will only send types based on the results of the
+	 * handles(Class) method below.
+	 */
+	@Override
+	public void handle(Object message)
 	{
-		/**
-		 * Process the incoming message, which will be of type Event, because
-		 * Domain-Events will only send types based on the results of the
-		 * handles(Class) method below.
-		 */
-		@Override
-		public void handle(Object message)
-		{
-			Event event = (Event) message;
+		Event event = (Event) message;
 
-			System.out.println(event.getData());
-		}
-
-		/**
-		 * We want to process messages of type Event in this handler.
-		 * So we'll return true if the parameter, eventClass, is of type Event.
-		 */
-		@Override
-		public boolean handles(Class<?> eventClass)
-		{
-			if (Event.class.isAssignableFrom(eventClass))
-			{
-				return true;
-			}
-			
-			return false;
-		}		
+		System.out.println(event.getData());
 	}
-'''
+
+	/**
+	 * We want to process messages of type Event in this handler.
+	 * So we'll return true if the parameter, eventClass, is of type Event.
+	 */
+	@Override
+	public boolean handles(Class<?> eventClass)
+	{
+		if (Event.class.isAssignableFrom(eventClass))
+		{
+			return true;
+		}
+		
+		return false;
+	}		
+}
+```
 
 Cleaning Up
 ===========
@@ -150,14 +145,12 @@ as necessary.
 
 If your using the EventBus directly, simply call:
 
-'''Java
-
+```java
 	akkaBus.shutdown();
-'''
+```
 
 Or, if you're using the Singleton, DomainEvents (recommended), call:
 
-'''Java
-
+```java
 	DomainEvents.shutdownEventBusses();
-'''
+```
