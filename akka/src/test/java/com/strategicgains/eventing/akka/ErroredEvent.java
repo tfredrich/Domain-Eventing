@@ -22,7 +22,6 @@ package com.strategicgains.eventing.akka;
 public class ErroredEvent
 extends HandledEvent
 {
-    private static final long serialVersionUID = -2659798178870960451L;
 	private int occurrences = 0;
 
 	@Override
