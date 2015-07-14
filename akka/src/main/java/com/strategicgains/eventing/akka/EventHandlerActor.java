@@ -42,7 +42,21 @@ extends UntypedActor
 	{
 		if (event != null && handler.handles(event.getClass()))
 		{
-			handler.handle(event);
+			getContext().dispatcher().execute(new Runnable()
+			{
+				@Override
+                public void run()
+                {
+					try
+                    {
+	                    handler.handle(event);
+                    }
+                    catch (Exception e)
+                    {
+	                    e.printStackTrace();
+                    }
+                }
+			});
 		}
 	}
 
