@@ -30,29 +30,6 @@ Event Production
 In this model, published events stay within the current Java virtual machine (JVM).  This is the simplest and fastest option.
 However, as published events are in an in-memory queue, it is possible to lose messages if the JVM goes down unexpectedly.
 
-Event Flow
-==========
-### Domain Model
-<table border="0">
-	<tr>
-		<td>DomainEvents.publish(event)</td>
-		<td>---&gt;</td>
-		<td>eventMonitor.publish(event)</td>
-		<td>---&gt;</td>
-		<td>concurrentQueue.add(event)<br/>monitorThread.notify()</td>
-	</tr>
-</table>
-### Monitor Thread (on notify)
-<table border="0">
-	<tr>
-		<td>event = concurrentQueue.poll()</td>
-		<td>---&gt;</td>
-		<td>Get handlers that can process the given event.<br/>Utilizes handler.handles(event).<br/>This collection of handlers<br/>is cached for later use.</td>
-		<td>---&gt;</td>
-		<td>handler.handle(event)<br/>(for each handler)<br/>Each handler run in its own executor.</td>
-	</tr>
-</table>
-
 Maven Usage
 ===========
 Stable:
@@ -60,7 +37,7 @@ Stable:
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-core</artifactId>
-			<version>0.4.4</version>
+			<version>0.4.5</version>
 		</dependency>
 ```
 OR (for hazelcast-clustered eventing):
@@ -68,7 +45,7 @@ OR (for hazelcast-clustered eventing):
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-hazelcast</artifactId>
-			<version>0.4.4</version>
+			<version>0.4.5</version>
 		</dependency>
 ```
 Development:
@@ -76,7 +53,7 @@ Development:
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-core</artifactId>
-			<version>0.4.5-SNAPSHOT</version>
+			<version>0.4.6-SNAPSHOT</version>
 		</dependency>
 ```
 OR (for hazelcast-clustered eventing):
@@ -84,7 +61,15 @@ OR (for hazelcast-clustered eventing):
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-hazelcast</artifactId>
-			<version>0.4.5-SNAPSHOT</version>
+			<version>0.4.6-SNAPSHOT</version>
+		</dependency>
+```
+OR (for Akka-based eventing):
+```xml
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-akka</artifactId>
+			<version>0.4.6-SNAPSHOT</version>
 		</dependency>
 ```
 
@@ -111,6 +96,9 @@ Note that to use the SNAPSHOT version, you must enable snapshots and a repositor
 
 Release Notes
 =============
+### 0.4.6-SNAPSHOT (in branch 'master')
+* Added domain-eventing-akka, supporting Akka-based eventing. Note: By release 1.0, this will become 'core' and replace the functionality of existing core and eliminate the need for Hazelcast.
+
 ### 0.4.5 - Released 2 Dec 2014
 * Fixed misspelling of method LocalEventBusBuilder.addPublishableEventType().
 
