@@ -15,9 +15,6 @@
  */
 package com.strategicgains.eventing.akka;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.japi.Creator;
@@ -31,13 +28,6 @@ import com.strategicgains.eventing.EventHandler;
 public class EventHandlerActor
 extends UntypedActor
 {
-	private static final Executor EVENT_EXECUTOR = Executors.newCachedThreadPool();
-
-	public static Props props(final EventHandler handler)
-	{
-		return Props.create(new AdapterFactory(handler));
-	}
-
 	private EventHandler handler;
 
 	public EventHandlerActor(EventHandler handler)
@@ -47,41 +37,28 @@ extends UntypedActor
 	}
 
 	@Override
-	public void onReceive(Object event) throws Exception
+	public void onReceive(Object event)
+	throws Exception
 	{
 		if (event != null && handler.handles(event.getClass()))
 		{
-			processEvent(event);
+			handler.handle(event);
 		}
 	}
 
-	private void processEvent(final Object event)
+	public static Props props(final EventHandler handler)
 	{
-		EVENT_EXECUTOR.execute(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				try
-				{
-					handler.handle(event);
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
-			}
-		});
+		return Props.create(new ActorFactory(handler));
 	}
 
-	private static class AdapterFactory
+	private static class ActorFactory
 	implements Creator<EventHandlerActor>
 	{
 		private static final long serialVersionUID = -1142009288324369918L;
 
 		private EventHandler handler;
 
-		public AdapterFactory(EventHandler handler)
+		public ActorFactory(EventHandler handler)
 		{
 			super();
 			this.handler = handler;
