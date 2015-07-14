@@ -17,6 +17,7 @@ Using a Builder
 ---------------
 
 '''Java
+
 	// Allocation one or more EventHandler implementations.
 	DomainEventsTestHandler handler = new DomainEventsTestHandler();
 
@@ -32,8 +33,9 @@ Using Constructors
 ------------------
 
 '''Java
+
 	EventBus akkaBus = new AkkaEventBus();			// Uses the default ActorSystem, named 'AkkaDomainEventing'
-// Or...
+	// Or...
 	EventBus akkaBus = new AkkaEventBus(actorSystem);	// Use your configured ActorSystem.
 
 	akkaBus.addPublishableEventType(Message.class);	// Optional. Denote the event Class(es) that this bus can publish.
@@ -54,6 +56,7 @@ For example, you may want a 'local' bus that is configured to send certain event
 determine which events to send to which bus using the addPublishableEventType() method on each EventBus. Otherwise, it sends all events to all buses.
 
 '''Java
+
 	DomainEvents.addEventBus('akka', akkaBus);
 ''' 
 
@@ -65,6 +68,7 @@ Publishing Events
 Send your event POJOs to the event buses configured in DomainEvents.
 
 '''Java
+
 	// Define arbitrary POJOs to describe your event(s)
 	public class Event
 	{
@@ -104,6 +108,7 @@ An EventHandler is very simple. It only has two methods to implement:
 Here, we'll create an example for the above event bus configuration to handle Event POJOs described above, simply printing out the string 'data' property on the event.
  
 '''Java
+
 	public class DomainEventsTestHandler
 	implements EventHandler
 	{
@@ -146,11 +151,13 @@ as necessary.
 If your using the EventBus directly, simply call:
 
 '''Java
+
 	akkaBus.shutdown();
 '''
 
 Or, if you're using the Singleton, DomainEvents (recommended), call:
 
 '''Java
+
 	DomainEvents.shutdownEventBusses();
 '''
