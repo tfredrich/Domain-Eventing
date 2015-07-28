@@ -37,7 +37,7 @@ extends UntypedActor
 	}
 
 	@Override
-	public void onReceive(Object event)
+	public void onReceive(final Object event)
 	throws Exception
 	{
 		if (event != null && handler.handles(event.getClass()))
