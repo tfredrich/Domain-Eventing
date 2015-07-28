@@ -98,6 +98,7 @@ Release Notes
 =============
 ### 0.4.6-SNAPSHOT (in branch 'master')
 * Added domain-eventing-akka, supporting Akka-based eventing. Note: By release 1.0, this will become 'core' and replace the functionality of existing core and eliminate the need for Hazelcast.
+* Requires Java 1.8 (due to Akka support).
 
 ### 0.4.5 - Released 2 Dec 2014
 * Fixed misspelling of method LocalEventBusBuilder.addPublishableEventType().
