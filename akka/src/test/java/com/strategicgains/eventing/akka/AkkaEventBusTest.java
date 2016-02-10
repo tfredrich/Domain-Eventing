@@ -31,7 +31,7 @@ import com.strategicgains.eventing.EventHandler;
  */
 public class AkkaEventBusTest
 {
-	private static final long PAUSE_MILLIS = 100;
+	private static final long PAUSE_MILLIS = 300;
 
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();

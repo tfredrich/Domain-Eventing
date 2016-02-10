@@ -37,31 +37,7 @@ Stable:
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-core</artifactId>
-			<version>0.4.5</version>
-		</dependency>
-```
-OR (for hazelcast-clustered eventing):
-```xml
-		<dependency>
-			<groupId>com.strategicgains.domain-eventing</groupId>
-			<artifactId>domain-eventing-hazelcast</artifactId>
-			<version>0.4.5</version>
-		</dependency>
-```
-Development:
-```xml
-		<dependency>
-			<groupId>com.strategicgains.domain-eventing</groupId>
-			<artifactId>domain-eventing-core</artifactId>
-			<version>0.4.6-SNAPSHOT</version>
-		</dependency>
-```
-OR (for hazelcast-clustered eventing):
-```xml
-		<dependency>
-			<groupId>com.strategicgains.domain-eventing</groupId>
-			<artifactId>domain-eventing-hazelcast</artifactId>
-			<version>0.4.6-SNAPSHOT</version>
+			<version>1.0</version>
 		</dependency>
 ```
 OR (for Akka-based eventing):
@@ -69,7 +45,23 @@ OR (for Akka-based eventing):
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-akka</artifactId>
-			<version>0.4.6-SNAPSHOT</version>
+			<version>1.0</version>
+		</dependency>
+```
+Development:
+```xml
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-core</artifactId>
+			<version>1.1-SNAPSHOT</version>
+		</dependency>
+```
+OR (for Akka-based eventing):
+```xml
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-akka</artifactId>
+			<version>1.1-SNAPSHOT</version>
 		</dependency>
 ```
 
@@ -96,8 +88,8 @@ Note that to use the SNAPSHOT version, you must enable snapshots and a repositor
 
 Release Notes
 =============
-### 0.4.6-SNAPSHOT (in branch 'master')
-* Added domain-eventing-akka, supporting Akka-based eventing. Note: By release 1.0, this will become 'core' and replace the functionality of existing core and eliminate the need for Hazelcast.
+### 1.0 - Release 10 Feb 2016
+* Added domain-eventing-akka, supporting Akka-based eventing. Hazelcast eventing support will no longer be maintained unless somebody hollers.
 * Requires Java 1.8 (due to Akka support).
 
 ### 0.4.5 - Released 2 Dec 2014

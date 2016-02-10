@@ -31,6 +31,7 @@ import com.strategicgains.eventing.EventHandler;
  */
 public class LocalEventBusTest
 {
+	private static final int PAUSE_MILLIS = 300;
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
@@ -54,7 +55,7 @@ public class LocalEventBusTest
 	{
 		assertEquals(0, handler.getCallCount());
 		queue.publish(new HandledEvent());
-		Thread.sleep(150);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -76,7 +77,7 @@ public class LocalEventBusTest
 		queue.publish(new IgnoredEvent());
 		queue.publish(new HandledEvent());
 		queue.publish(new IgnoredEvent());
-		Thread.sleep(150);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -88,7 +89,7 @@ public class LocalEventBusTest
 	{
 		assertEquals(0, ignoredHandler.getCallCount());
 		queue.publish(new IgnoredEvent());
-		Thread.sleep(150);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(1, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -102,7 +103,7 @@ public class LocalEventBusTest
 
 		assertEquals(0, handler.getCallCount());
 		queue.publish(new ErroredEvent());
-		Thread.sleep(150);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(6, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -114,7 +115,7 @@ public class LocalEventBusTest
 	{
 		assertEquals(0, handler.getCallCount());
 		queue.publish(new ErroredEvent());
-		Thread.sleep(150);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -130,7 +131,7 @@ public class LocalEventBusTest
 		queue.publish(new LongEvent());
 		queue.publish(new LongEvent());
 		queue.publish(new LongEvent());
-		Thread.sleep(150);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(5, longHandler.getCallCount());
@@ -154,7 +155,7 @@ public class LocalEventBusTest
 		queue.publish(new IgnoredEvent());
 		queue.publish(new HandledEvent());
 		queue.publish(new IgnoredEvent());
-		Thread.sleep(150);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
