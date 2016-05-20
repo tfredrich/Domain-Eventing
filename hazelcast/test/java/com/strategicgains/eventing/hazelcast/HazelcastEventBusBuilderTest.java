@@ -18,6 +18,8 @@ package com.strategicgains.eventing.hazelcast;
 import static org.junit.Assert.assertEquals;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.junit.After;
 import org.junit.Before;
@@ -150,15 +152,10 @@ public class HazelcastEventBusBuilderTest
 		}
 
 		@Override
-		public boolean handles(Class<?> eventClass)
+		public Collection<String> getHandledEventTypes()
 		{
-			if (HandledEvent.class.isAssignableFrom(eventClass))
-			{
-				return true;
-			}
-			
-			return false;
-		}		
+			return Arrays.asList(HandledEvent.class.getName(), ErroredEvent.class.getName());
+		}
 	}
 
 	private static class DomainEventsTestIgnoredEventsHandler
@@ -179,15 +176,10 @@ public class HazelcastEventBusBuilderTest
 		}
 
 		@Override
-		public boolean handles(Class<?> eventClass)
+		public Collection<String> getHandledEventTypes()
 		{
-			if (IgnoredEvent.class.isAssignableFrom(eventClass))
-			{
-				return true;
-			}
-			
-			return false;
-		}		
+			return Arrays.asList(IgnoredEvent.class.getName());
+		}
 	}
 
 	private static class DomainEventsTestLongEventHandler
@@ -218,9 +210,9 @@ public class HazelcastEventBusBuilderTest
 		}
 
 		@Override
-		public boolean handles(Class<?> eventClass)
+		public Collection<String> getHandledEventTypes()
 		{
-			return (LongEvent.class.isAssignableFrom(eventClass));
-		}		
+			return Arrays.asList(LongEvent.class.getName());
+		}
 	}
 }

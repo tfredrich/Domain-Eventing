@@ -29,7 +29,7 @@ import com.strategicgains.eventing.EventTransport;
 public class LocalEventTransport
 implements EventTransport
 {
-	private Queue<Object> queue = new ConcurrentLinkedQueue<Object>();
+	private Queue<Object> queue = new ConcurrentLinkedQueue<>();
 	private EventMonitor monitor;
 
 	public LocalEventTransport(Collection<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)

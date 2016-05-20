@@ -8,7 +8,7 @@ for domain models within a single JVM, or using a distributed event bus, message
 
 This simple Java library provides a Singleton interface (see DomainEvents class) to create event bus(ses) and to
 publish events (which are just POJOs) throughout the domain layer (POJOs must be Serializable for a distributed
-event bus).
+event bus on Hazelcast).
 
 Event handlers simply implement the EventHandler interface, which has two methods, handle(Object) and handles(Class).
 The handle() method is the implementation for processing the domain event and handles() returns a boolean indicating
@@ -21,7 +21,7 @@ messages don't usually need to be broadcast enterprise wide.  For instance, with
 model, cascade deletes may occur asynchronously, outside of the request.  This is a great candidate for inter-application
 eventing instead of leveraging full-up JMS or other messaging system.
 
-The domain eventing model supported is publish/subscribe (pub/sub)--sending messages to all subsribers that can process it.
+The domain eventing model supported is publish/subscribe (pub/sub)--sending messages to all subscribers that can process it.
 There is no concept within this library of point-to-point or single consumer for a message and is, therefore, left as
 an exercise for the reader... :-)
 
@@ -48,12 +48,20 @@ OR (for Akka-based eventing):
 			<version>1.0</version>
 		</dependency>
 ```
+OR (for Hazelcast-based eventing):
+```xml
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-hazelcast</artifactId>
+			<version>1.0</version>
+		</dependency>
+```
 Development:
 ```xml
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-core</artifactId>
-			<version>1.1-SNAPSHOT</version>
+			<version>2.0.0-SNAPSHOT</version>
 		</dependency>
 ```
 OR (for Akka-based eventing):
@@ -61,7 +69,23 @@ OR (for Akka-based eventing):
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
 			<artifactId>domain-eventing-akka</artifactId>
-			<version>1.1-SNAPSHOT</version>
+			<version>2.0.0-SNAPSHOT</version>
+		</dependency>
+```
+OR (for Kafka-based eventing):
+```xml
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-kafka</artifactId>
+			<version>2.0.0-SNAPSHOT</version>
+		</dependency>
+```
+OR (for Hazelcast-based eventing):
+```xml
+		<dependency>
+			<groupId>com.strategicgains.domain-eventing</groupId>
+			<artifactId>domain-eventing-hazelcast</artifactId>
+			<version>2.0.0-SNAPSHOT</version>
 		</dependency>
 ```
 
@@ -88,7 +112,8 @@ Note that to use the SNAPSHOT version, you must enable snapshots and a repositor
 
 Release Notes
 =============
-### 1.1 - SNAPSHOT (in 'master' branch)
+### 2.0 - SNAPSHOT (in 'master' branch)
+* Introduced concept of 'topic' for subscription to allow for larger messaging context (e.g. Kafka, RabbitMQ, etc.), which makes the Domain-Eventing library more of a messaging abstraction instead of just domain eventing.
 * Introduced domain-eventing-kafka supporting Kafka-based eventing.
 * Upgraded to Hazelcast version 3.6.2
 * Upgraded version akka-actor_2.11 version 2.3.15

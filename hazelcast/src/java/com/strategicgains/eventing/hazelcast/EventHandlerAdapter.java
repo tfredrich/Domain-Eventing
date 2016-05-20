@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
 import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.Events;
 
 /**
  * @author toddf
@@ -48,7 +49,7 @@ implements MessageListener<Object>
 	{
 		System.out.println("Message received: " + message.toString());
 
-		if (handler.handles(message.getMessageObject().getClass()))
+		if (handler.getHandledEventTypes().contains(Events.getEventType(message.getMessageObject())))
 		{
 			processEvent(message.getMessageObject());
 		}

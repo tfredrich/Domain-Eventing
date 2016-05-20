@@ -15,11 +15,12 @@
  */
 package com.strategicgains.eventing.akka;
 
+import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.Events;
+
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.japi.Creator;
-
-import com.strategicgains.eventing.EventHandler;
 
 /**
  * @author tfredrich
@@ -40,7 +41,7 @@ extends UntypedActor
 	public void onReceive(final Object event)
 	throws Exception
 	{
-		if (event != null && handler.handles(event.getClass()))
+		if (event != null && handler.getHandledEventTypes().contains(Events.getEventType(event)))
 		{
 			getContext().dispatcher().execute(new Runnable()
 			{

@@ -25,6 +25,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.Events;
 
 /**
  * A thread that receives published events and sends them to subscribers.
@@ -46,7 +47,7 @@ extends Thread
 	
 	// SECTION: INSTANCE METHODS
 
-	private Map<Class<?>, List<EventHandler>> handlersByEvent = new ConcurrentHashMap<Class<?>, List<EventHandler>>();
+	private Map<String, List<EventHandler>> handlersByEvent = new ConcurrentHashMap<>();
 	private Set<EventHandler> handlers = new LinkedHashSet<EventHandler>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
@@ -148,7 +149,7 @@ extends Thread
 	private void processEvent(final Object event)
     {
 	    System.out.println("Processing event: " + event.toString());
-	    for (final EventHandler handler : getConsumersFor(event.getClass()))
+	    for (final EventHandler handler : getConsumersFor(event))
 	    {
     		EVENT_EXECUTOR.execute(new Runnable(){
 				@Override
@@ -182,18 +183,19 @@ extends Thread
 		handlersByEvent.clear();
     }
 
-	private synchronized List<EventHandler> getConsumersFor(Class<?> eventClass)
+	private synchronized List<EventHandler> getConsumersFor(Object event)
 	{
-		List<EventHandler> result = handlersByEvent.get(eventClass);
+		String eventType = Events.getEventType(event);
+		List<EventHandler> result = handlersByEvent.get(eventType);
 		
 		if (result == null)
 		{
 			result = new ArrayList<EventHandler>();
-			handlersByEvent.put(eventClass, result);
+			handlersByEvent.put(eventType, result);
 			
 			for (EventHandler consumer : handlers)
 			{
-				if (consumer.handles(eventClass))
+				if (consumer.getHandledEventTypes().contains(eventType))
 				{
 					result.add(consumer);
 				}

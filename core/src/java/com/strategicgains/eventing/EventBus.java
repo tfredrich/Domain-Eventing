@@ -19,13 +19,21 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * An EventBus provides a transport layer to enable the publishing of and subscription to events. The events are POJOs or Event implementations.
+ * Each event type becomes, essentially, a 'topic' to which there can be multiple subscribers. All subscribers will receive the event.
+ * 
+ * An event bus can be configured to only publish messages of certain types. This may be useful when multiple event buses are configured and
+ * registered with DomainEvents. For example a 'local' bus that publishes only within the VM and a 'public' bus that publishes enterprise wide.
+ * If the 'local' bus handles different types of messages that the 'public' bus, you can configure the buses to only publish applicable types
+ * using the addPublishableEventType() method.
+ * 
  * @author toddf
  * @since Jun 27, 2012
  */
 public abstract class EventBus
 {
 	private EventTransport transport;
-	private Set<Class<?>> publishableEventTypes = new HashSet<Class<?>>();
+	private Set<String> publishableEventTypes = new HashSet<>();
 
 	public EventBus(EventTransport transport)
 	{
@@ -33,40 +41,79 @@ public abstract class EventBus
 		this.transport = transport;
 	}
 
-	public boolean addPublishableEventType(Class<?> eventType)
+	/**
+	 * Adds an event type to the list of event types that are acceptable for this event bus to publish.
+	 * By default all message types are allowed. Once a specific one is added, the event bus will only
+	 * messages of the added type(s).
+	 *  
+	 * @param eventType an event type name to allow this event bus to publish.
+	 * @return true if the event type was added, false if the event type already existed.
+	 */
+	public boolean addPublishableEventType(String eventType)
 	{
 		return publishableEventTypes.add(eventType);
 	}
 
-	public boolean canPublish(Class<?> eventType)
+	/**
+	 * Answers whether this event bus implementation is allowed to publish the given event type.
+	 * 
+	 * @param eventType
+	 * @return true if this EventBus implementation can send messages of the given type.
+	 */
+	public boolean canPublish(String eventType)
 	{
 		if (publishableEventTypes.isEmpty()) return true;
 
 		return publishableEventTypes.contains(eventType);
 	}
 
+	/**
+	 * Publish the event, if this event bus can publish events of that type.
+	 * 
+	 * @param event an event to publish.
+	 */
 	public void publish(Object event)
 	{
-		if (!canPublish(event.getClass())) return;
+		if (!canPublish(Events.getEventType(event))) return;
 
 		transport.publish(event);
 	}
 
+	/**
+	 * Shutdown this event bus and release its resources.
+	 */
 	public void shutdown()
 	{
 		transport.shutdown();
 	}
 
+	/**
+	 * Create a subscription to this event bus, providing an EventHandler implementation to process events.
+	 * 
+	 * @param handler an event handler implementation.
+	 * @return true if the subscription was created successfully. Otherwise, false.
+	 */
 	public boolean subscribe(EventHandler handler)
 	{
 		return transport.subscribe(handler);
 	}
 
+	/**
+	 * Removes the subscription to this event bus for the given EventHandler.
+	 * 
+	 * @param handler an event handler implementation.
+	 * @return true if the subscription was removedsuccessfully. Otherwise, false.
+	 */
 	public boolean unsubscribe(EventHandler handler)
 	{
 		return transport.unsubscribe(handler);
 	}
-	
+
+	/**
+	 * Get a handle to the underlying EventTransport implementation for this EventBus.
+	 * 
+	 * @return the EventTransport implementation on this event bus.
+	 */
 	protected EventTransport getTransport()
 	{
 		return transport;

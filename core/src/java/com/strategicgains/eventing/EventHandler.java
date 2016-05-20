@@ -15,13 +15,19 @@
 */
 package com.strategicgains.eventing;
 
-
+import java.util.Collection;
 
 /**
- * Defines the interface for objects that can process (handle) domain events.
- * Implementations of this interface are registered with the EventMonitor via
- * a call to DomainEvents.register() or with the EventMonitor instance directly
- * (e.g. eventMonitorInstance.register()).
+ * Defines the interface for objects that can process (handle) domain events
+ * of particular type(s).
+ * 
+ * Implementations of this interface are registered with the EventBus via
+ * a call to subscribe(EventHandler) on the event bus itself. There is no
+ * processing of the event object before it is sent to the event handler.
+ * 
+ * Depending on the underlying implementation of the transport system for the
+ * event bus, the act of subscribing may materialize a subscription in an external
+ * messaging system.
  * 
  * @author toddf
  * @since May 12, 2011
@@ -36,14 +42,17 @@ public interface EventHandler
 	 */
 	public void handle(Object event)
 	throws Exception;
-	
+
 	/**
-	 * Answers whether this EventHandler can handle events of the given type.
-	 * If true is returned, the EventMonitor will call handle(), otherwise,
-	 * the EventMonitor will not ask this event handler to process the event.
+	 * Provides a list of event types that this EventHandler cares about.
+	 * Only messages of the given types will be sent to this event handler.
 	 * 
-	 * @param eventClass
+	 * It is possible to use class names (simple or fully-qualified), however,
+	 * when using non-local event transports such as Kafka or RabbitMQ, these
+	 * event types become topics to which subscriptions are registered. To these
+	 * event types must match topic names in those transports.
+	 * 
 	 * @return
 	 */
-	public boolean handles(Class<?> eventClass);
+	public Collection<String> getHandledEventTypes();
 }

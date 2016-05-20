@@ -33,8 +33,8 @@ implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
 {
 	private static final long DEFAULT_POLL_DELAY = 0L;
 
-	private Set<EventHandler> subscribers = new LinkedHashSet<EventHandler>();
-	private Set<Class<?>> publishableEventTypes = new HashSet<Class<?>>();
+	private Set<EventHandler> subscribers = new LinkedHashSet<>();
+	private Set<String> publishableEventTypes = new HashSet<>();
 	private boolean shouldRepublishOnError = false;
 	private long pollDelay = DEFAULT_POLL_DELAY;
 
@@ -50,7 +50,7 @@ implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
 
 		LocalEventBus bus = new LocalEventBus(subscribers, shouldRepublishOnError, pollDelay);
 		
-		for (Class<?> eventType : publishableEventTypes)
+		for (String eventType : publishableEventTypes)
 		{
 			bus.addPublishableEventType(eventType);
 		}
@@ -88,7 +88,7 @@ implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
     	return this;
     }
     
-    public LocalEventBusBuilder addPublishableEventType(Class<?> eventType)
+    public LocalEventBusBuilder addPublishableEventType(String eventType)
     {
     	publishableEventTypes.add(eventType);
     	return this;

@@ -152,5 +152,7 @@ If your using the EventBus directly, simply call:
 Or, if you're using the Singleton, DomainEvents (recommended), call:
 
 ```java
-	DomainEvents.shutdownEventBusses();
+	DomainEvents.shutdown();
 ```
+
+Which shutsdown all of the event buses registered with the DomainEvents singleton class.

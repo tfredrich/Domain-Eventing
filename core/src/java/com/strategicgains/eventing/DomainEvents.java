@@ -21,12 +21,11 @@ import java.util.Map;
 
 /**
  * DomainEvents defines a static public interface for raising and handling domain events.
- * Raising an event places it in an in-memory queue that is then handled asynchronously
- * by an EventMonitor.
- * <p/>
- * Domain events are publish-subscribe, where when an event is raised, all appropriate
- * EventHandler instances are notified of an event, if they have subscribed and handles() returns
- * true for the given event class.
+ * Raising an event pushes it to zero or more configured event buses to be handled asynchronously
+ * by a subscribed EventHandler implementor.
+ *
+ * Domain events are publish-subscribe, where when an event is raised, all subscribed
+ * EventHandler instances are notified of an event.
  * 
  * All raised DomainEvent instances are handled asynchronously.  However, they may NOT be published
  * asynchronously, depending on the underlying transport implementation.
@@ -43,7 +42,7 @@ public class DomainEvents
 	
 	// SECTION: INSTANCE VARIABLES
 
-	private Map<String, EventBus> eventBusses = new LinkedHashMap<String, EventBus>();
+	private Map<String, EventBus> eventBuses = new LinkedHashMap<String, EventBus>();
 
 
 	// SECTION: CONSTRUCTOR
@@ -67,7 +66,7 @@ public class DomainEvents
 	/**
 	 * Publish an event to a named event bus.
 	 * The name of the bus is assigned during a call to addBus(String, EventBus).
-	 * <p/>
+	 *
 	 * Event publishing can only occur after event busses are setup.
 	 * 
 	 * @param name the name of a specific event bus.
@@ -80,7 +79,7 @@ public class DomainEvents
 
 	/**
 	 * Publish an event, passing it to applicable consumers asynchronously.
-	 * <p/>
+	 *
 	 * Event publishing can only occur after event busses are setup.
 	 * 
 	 * @param event the Object as an event to publish.
@@ -121,7 +120,7 @@ public class DomainEvents
 	 */
 	public static void shutdown()
 	{
-		instance().shutdownEventBusses();
+		instance().shutdownAll();
 	}
 
 
@@ -129,9 +128,9 @@ public class DomainEvents
 
 	private boolean addEventBus(String name, EventBus bus)
 	{
-		if (!eventBusses.containsKey(name))
+		if (!eventBuses.containsKey(name))
 		{
-			eventBusses.put(name, bus);
+			eventBuses.put(name, bus);
 			return true;
 		}
 		
@@ -140,12 +139,12 @@ public class DomainEvents
 	
 	private EventBus getEventBus(String name)
 	{
-		return eventBusses.get(name);
+		return eventBuses.get(name);
 	}
 	
 	private boolean hasEventBusses()
 	{
-		return (eventBusses != null);
+		return (eventBuses != null);
 	}
 
 	/**
@@ -157,7 +156,7 @@ public class DomainEvents
 	{
 		assert(hasEventBusses());
 
-		for (EventBus eventBus : eventBusses.values())
+		for (EventBus eventBus : eventBuses.values())
 		{
 			eventBus.publish(event);
 		}
@@ -182,13 +181,13 @@ public class DomainEvents
 		eventBus.publish(event);
 	}
 
-	private void shutdownEventBusses()
+	private void shutdownAll()
 	{
-		for (EventBus eventBus : eventBusses.values())
+		for (EventBus eventBus : eventBuses.values())
 		{
 			eventBus.shutdown();
 		}
 		
-		eventBusses.clear();
+		eventBuses.clear();
 	}
 }

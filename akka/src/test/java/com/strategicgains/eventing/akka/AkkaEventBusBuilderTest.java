@@ -17,6 +17,9 @@ package com.strategicgains.eventing.akka;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -148,15 +151,10 @@ public class AkkaEventBusBuilderTest
 		}
 
 		@Override
-		public boolean handles(Class<?> eventClass)
+		public Collection<String> getHandledEventTypes()
 		{
-			if (HandledEvent.class.isAssignableFrom(eventClass))
-			{
-				return true;
-			}
-			
-			return false;
-		}		
+			return Arrays.asList(HandledEvent.class.getName(), ErroredEvent.class.getName());
+		}
 	}
 
 	private static class DomainEventsTestIgnoredEventsHandler
@@ -177,15 +175,10 @@ public class AkkaEventBusBuilderTest
 		}
 
 		@Override
-		public boolean handles(Class<?> eventClass)
+		public Collection<String> getHandledEventTypes()
 		{
-			if (IgnoredEvent.class.isAssignableFrom(eventClass))
-			{
-				return true;
-			}
-			
-			return false;
-		}		
+			return Arrays.asList(IgnoredEvent.class.getName());
+		}
 	}
 
 	private static class DomainEventsTestLongEventHandler
@@ -216,9 +209,9 @@ public class AkkaEventBusBuilderTest
 		}
 
 		@Override
-		public boolean handles(Class<?> eventClass)
+		public Collection<String> getHandledEventTypes()
 		{
-			return (LongEvent.class.isAssignableFrom(eventClass));
-		}		
+			return Arrays.asList(LongEvent.class.getName());
+		}
 	}
 }

@@ -18,6 +18,9 @@ package com.strategicgains.eventing;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -151,7 +154,7 @@ public class DomainEventsTest
 	public void shouldOnlyPublishSelected()
 	throws Exception
 	{
-		((LocalEventBus) DomainEvents.getBus("primary")).addPublishableEventType(HandledEvent.class);
+		((LocalEventBus) DomainEvents.getBus("primary")).addPublishableEventType(HandledEvent.class.getName());
 
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
@@ -179,7 +182,7 @@ public class DomainEventsTest
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
-			.addPublishableEventType(HandledEvent.class)
+			.addPublishableEventType(HandledEvent.class.getName())
 			.build();
 		DomainEvents.addBus("secondary", q);
 
@@ -255,15 +258,10 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public boolean handles(Class<?> eventClass)
+		public Collection<String> getHandledEventTypes()
 		{
-			if (HandledEvent.class.isAssignableFrom(eventClass))
-			{
-				return true;
-			}
-			
-			return false;
-		}		
+			return Arrays.asList(HandledEvent.class.getName(), ErroredEvent.class.getName());
+		}
 	}
 
 	private static class DomainEventsTestIgnoredEventsHandler
@@ -284,15 +282,10 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public boolean handles(Class<?> eventClass)
+		public Collection<String> getHandledEventTypes()
 		{
-			if (IgnoredEvent.class.isAssignableFrom(eventClass))
-			{
-				return true;
-			}
-			
-			return false;
-		}		
+			return Arrays.asList(IgnoredEvent.class.getName());
+		}
 	}
 
 	private static class DomainEventsTestLongEventHandler
@@ -323,14 +316,9 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public boolean handles(Class<?> eventClass)
+		public Collection<String> getHandledEventTypes()
 		{
-			if (LongEvent.class.isAssignableFrom(eventClass))
-			{
-				return true;
-			}
-			
-			return false;
-		}		
+			return Arrays.asList(LongEvent.class.getName());
+		}
 	}
 }
