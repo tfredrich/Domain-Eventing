@@ -112,7 +112,7 @@ Note that to use the SNAPSHOT version, you must enable snapshots and a repositor
 
 Release Notes
 =============
-### 2.0 - SNAPSHOT (in 'master' branch)
+### 2.0.0 - SNAPSHOT (in 'master' branch)
 * Introduced concept of 'topic' for subscription to allow for larger messaging context (e.g. Kafka, RabbitMQ, etc.), which makes the Domain-Eventing library more of a messaging abstraction instead of just domain eventing.
 * Introduced domain-eventing-kafka supporting Kafka-based eventing.
 * Upgraded to Hazelcast version 3.6.2
