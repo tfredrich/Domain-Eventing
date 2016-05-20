@@ -88,6 +88,11 @@ Note that to use the SNAPSHOT version, you must enable snapshots and a repositor
 
 Release Notes
 =============
+### 1.1 - SNAPSHOT (in 'master' branch)
+* Introduced domain-eventing-kafka supporting Kafka-based eventing.
+* Upgraded to Hazelcast version 3.6.2
+* Upgraded version akka-actor_2.11 version 2.3.15
+
 ### 1.0 - Release 10 Feb 2016
 * Added domain-eventing-akka, supporting Akka-based eventing. Hazelcast eventing support will no longer be maintained unless somebody hollers.
 * Requires Java 1.8 (due to Akka support).

@@ -19,6 +19,7 @@
 		<module>core</module>
 		<module>hazelcast</module>
 		<module>akka</module>
+		<module>kafka</module>
 	</modules>
 
 	<licenses>
