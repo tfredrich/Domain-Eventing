@@ -24,8 +24,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.BaseSubscription;
+import com.strategicgains.eventing.Consumer;
 import com.strategicgains.eventing.Events;
+import com.strategicgains.eventing.Subscription;
 
 /**
  * A thread that receives published events and sends them to subscribers.
@@ -47,8 +49,8 @@ extends Thread
 	
 	// SECTION: INSTANCE METHODS
 
-	private Map<String, List<EventHandler>> handlersByEvent = new ConcurrentHashMap<>();
-	private Set<EventHandler> handlers = new LinkedHashSet<EventHandler>();
+	private Map<String, List<Consumer>> consumersByEvent = new ConcurrentHashMap<>();
+	private Set<Consumer> handlers = new LinkedHashSet<Consumer>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
 	private LocalEventTransport eventQueue;
@@ -68,18 +70,18 @@ extends Thread
 	
 	// SECTION: INSTANCE METHODS
 
-	public synchronized boolean register(EventHandler handler)
+	public synchronized Subscription register(Consumer handler)
 	{
-		boolean result = handlers.add(handler);
-		handlersByEvent.clear();
-		return result;
+		handlers.add(handler);
+		consumersByEvent.clear();
+		return new BaseSubscription(handler);
 	}
 
-	public synchronized boolean unregister(EventHandler handler)
+	public synchronized boolean unregister(Consumer handler)
 	{
 		if (handlers.remove(handler))
 		{
-			handlersByEvent.clear();
+			consumersByEvent.clear();
 			return true;
 		}
 		
@@ -138,7 +140,7 @@ extends Thread
 		}
 		
 		System.out.println("Event monitor exiting...");
-		clearAllHandlers();
+		clearAllConsumers();
 	}
 
 	/**
@@ -149,7 +151,7 @@ extends Thread
 	private void processEvent(final Object event)
     {
 	    System.out.println("Processing event: " + event.toString());
-	    for (final EventHandler handler : getConsumersFor(event))
+	    for (final Consumer handler : getConsumersFor(event))
 	    {
     		EVENT_EXECUTOR.execute(new Runnable(){
 				@Override
@@ -157,7 +159,7 @@ extends Thread
                 {
 			    	try
 			    	{
-			    		handler.handle(event);
+			    		handler.consume(event);
 			    	}
 			    	catch(Exception e)
 			    	{
@@ -177,25 +179,25 @@ extends Thread
 	
 	// SECTION: UTILITY - PRIVATE
 
-	private void clearAllHandlers()
+	private void clearAllConsumers()
     {
 	    handlers.clear();
-		handlersByEvent.clear();
+		consumersByEvent.clear();
     }
 
-	private synchronized List<EventHandler> getConsumersFor(Object event)
+	private synchronized List<Consumer> getConsumersFor(Object event)
 	{
 		String eventType = Events.getEventType(event);
-		List<EventHandler> result = handlersByEvent.get(eventType);
+		List<Consumer> result = consumersByEvent.get(eventType);
 		
 		if (result == null)
 		{
-			result = new ArrayList<EventHandler>();
-			handlersByEvent.put(eventType, result);
+			result = new ArrayList<Consumer>();
+			consumersByEvent.put(eventType, result);
 			
-			for (EventHandler consumer : handlers)
+			for (Consumer consumer : handlers)
 			{
-				if (consumer.getHandledEventTypes().contains(eventType))
+				if (consumer.getConsumedEventTypes().contains(eventType))
 				{
 					result.add(consumer);
 				}

@@ -18,22 +18,24 @@ package com.strategicgains.eventing.akka;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.strategicgains.eventing.BaseSubscription;
+import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.Subscription;
+import com.strategicgains.eventing.Transport;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.event.japi.ScanningEventBus;
-
-import com.strategicgains.eventing.EventHandler;
-import com.strategicgains.eventing.EventTransport;
 
 /**
  * @author toddf
  * @since Jul 13, 2015
  */
 public class AkkaEventTransport
-implements EventTransport
+implements Transport
 {
 	private ActorSystem system;
-	private Map<EventHandler, ActorRef> subscribers = new ConcurrentHashMap<EventHandler, ActorRef>();
+	private Map<Consumer, ActorRef> subscribers = new ConcurrentHashMap<Consumer, ActorRef>();
 	private AkkaBusImpl akkaBus;
 
 	public AkkaEventTransport(ActorSystem actorSystem)
@@ -50,26 +52,24 @@ implements EventTransport
 	}
 
 	@Override
-	public boolean subscribe(EventHandler handler)
+	public Subscription subscribe(Consumer consumer)
 	{
-		ActorRef adapter = system.actorOf(EventHandlerActor.props(handler));
+		ActorRef adapter = system.actorOf(EventHandlerActor.props(consumer));
 		akkaBus.subscribe(adapter, Object.class);
-		subscribers.put(handler, adapter);
-		return true;
+		subscribers.put(consumer, adapter);
+		return new BaseSubscription(consumer);
 	}
 
 	@Override
-	public boolean unsubscribe(EventHandler handler)
+	public void unsubscribe(Subscription subscription)
 	{
-		ActorRef adapter = subscribers.get(handler);
+		ActorRef adapter = subscribers.get(subscription.getConsumer());
 
 		if (adapter != null)
 		{
 			akkaBus.unsubscribe(adapter);
-			return (subscribers.remove(handler) != null);
+			subscribers.remove(subscription.getConsumer());
 		}
-
-		return false;
 	}
 
 	@Override

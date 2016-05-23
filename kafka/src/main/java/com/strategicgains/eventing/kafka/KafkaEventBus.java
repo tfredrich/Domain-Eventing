@@ -18,14 +18,14 @@ package com.strategicgains.eventing.kafka;
 import java.util.Properties;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.strategicgains.eventing.EventBus;
+import com.strategicgains.eventing.AbstractEventBus;
 
 /**
  * @author tfredrich
  * @since 20 May 2016
  */
 public class KafkaEventBus
-extends EventBus
+extends AbstractEventBus
 {
 	public KafkaEventBus(Properties config, String topic, ObjectMapper mapper)
 	{

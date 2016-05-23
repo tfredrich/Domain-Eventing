@@ -24,7 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.Consumer;
 
 /**
  * @author toddf
@@ -181,12 +181,12 @@ public class LocalEventBusBuilderTest
 	}
 
 	private static class DomainEventsTestHandler
-	implements EventHandler
+	implements Consumer
 	{
 		private int callCount = 0;
 
 		@Override
-		public void handle(Object event)
+		public void consume(Object event)
 		{
 			assert(HandledEvent.class.isAssignableFrom(event.getClass()));
 
@@ -200,19 +200,19 @@ public class LocalEventBusBuilderTest
 		}
 
 		@Override
-		public Collection<String> getHandledEventTypes()
+		public Collection<String> getConsumedEventTypes()
 		{
 			return Arrays.asList(HandledEvent.class.getName(), ErroredEvent.class.getName());
 		}		
 	}
 
 	private static class DomainEventsTestIgnoredEventsHandler
-	implements EventHandler
+	implements Consumer
 	{
 		private int callCount = 0;
 
 		@Override
-		public void handle(Object event)
+		public void consume(Object event)
 		{
 			assert(event.getClass().equals(IgnoredEvent.class));
 			++callCount;
@@ -224,19 +224,19 @@ public class LocalEventBusBuilderTest
 		}
 
 		@Override
-		public Collection<String> getHandledEventTypes()
+		public Collection<String> getConsumedEventTypes()
 		{
 			return Arrays.asList(IgnoredEvent.class.getName());
 		}		
 	}
 
 	private static class DomainEventsTestLongEventHandler
-	implements EventHandler
+	implements Consumer
 	{
 		private int callCount = 0;
 
 		@Override
-		public void handle(Object event)
+		public void consume(Object event)
 		{
 			assert(event.getClass().equals(LongEvent.class));
 			++callCount;
@@ -258,7 +258,7 @@ public class LocalEventBusBuilderTest
 		}
 
 		@Override
-		public Collection<String> getHandledEventTypes()
+		public Collection<String> getConsumedEventTypes()
 		{
 			return Arrays.asList(LongEvent.class.getName());
 		}		

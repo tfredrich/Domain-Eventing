@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
-import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.Consumer;
 import com.strategicgains.eventing.Events;
 
 /**
@@ -36,9 +36,9 @@ implements MessageListener<Object>
 
 	// SECTION: INSTANCE VARIABLES
 
-	private EventHandler handler;
+	private Consumer handler;
 
-	public EventHandlerAdapter(EventHandler handler)
+	public EventHandlerAdapter(Consumer handler)
 	{
 		super();
 		this.handler = handler;
@@ -49,7 +49,7 @@ implements MessageListener<Object>
 	{
 		System.out.println("Message received: " + message.toString());
 
-		if (handler.getHandledEventTypes().contains(Events.getEventType(message.getMessageObject())))
+		if (handler.getConsumedEventTypes().contains(Events.getEventType(message.getMessageObject())))
 		{
 			processEvent(message.getMessageObject());
 		}
@@ -66,7 +66,7 @@ implements MessageListener<Object>
 			{
 				try
 				{
-					handler.handle(event);
+					handler.consume(event);
 				}
 				catch (Exception e)
 				{

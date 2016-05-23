@@ -20,7 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.strategicgains.eventing.EventBusBuilder;
-import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.Consumer;
 
 /**
  * Configure and build a local EventQueue that receives events only within the current JVM.
@@ -33,7 +33,7 @@ implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
 {
 	private static final long DEFAULT_POLL_DELAY = 0L;
 
-	private Set<EventHandler> subscribers = new LinkedHashSet<>();
+	private Set<Consumer> subscribers = new LinkedHashSet<>();
 	private Set<String> publishableEventTypes = new HashSet<>();
 	private boolean shouldRepublishOnError = false;
 	private long pollDelay = DEFAULT_POLL_DELAY;
@@ -71,7 +71,7 @@ implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
     }
 
     @Override
-    public LocalEventBusBuilder subscribe(EventHandler handler)
+    public LocalEventBusBuilder subscribe(Consumer handler)
     {
     	if (!subscribers.contains(handler))
     	{
@@ -82,7 +82,7 @@ implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
     }
 
     @Override
-    public LocalEventBusBuilder unsubscribe(EventHandler handler)
+    public LocalEventBusBuilder unsubscribe(Consumer handler)
     {
     	subscribers.remove(handler);
     	return this;

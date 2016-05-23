@@ -15,19 +15,21 @@
 */
 package com.strategicgains.eventing.akka;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import akka.actor.ActorSystem;
+import com.strategicgains.eventing.AbstractEventBus;
+import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.Subscription;
 
-import com.strategicgains.eventing.EventBus;
-import com.strategicgains.eventing.EventHandler;
+import akka.actor.ActorSystem;
 
 /**
  * @author tfredrich
  * @since Jul 13, 2015
  */
 public class AkkaEventBus
-extends EventBus
+extends AbstractEventBus
 {
 	public AkkaEventBus()
     {
@@ -39,11 +41,15 @@ extends EventBus
 		super(new AkkaEventTransport(actorSystem));
     }
 
-	public void subscribeAll(List<EventHandler> handlers)
+	public List<Subscription> subscribeAll(List<Consumer> handlers)
     {
-		for (EventHandler handler : handlers)
+		List<Subscription> subscriptions = new ArrayList<>(handlers.size());
+
+		for (Consumer handler : handlers)
 		{
-			getTransport().subscribe(handler);
+			subscriptions.add(getTransport().subscribe(handler));
 		}
+
+		return subscriptions;
     }
 }

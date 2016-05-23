@@ -9,7 +9,7 @@ package com.strategicgains.eventing;
 public class Events
 {
 	/**
-	 * Returns the event type of a given event. If the event implements Event, then 
+	 * Returns the event type of a given event. If the event implements {@link Event}, then 
 	 * getEventType() is called. Otherwise, the fully-qualified classname is returned.
 	 * 
 	 * @param event
@@ -22,6 +22,17 @@ public class Events
 			return ((Event)event).getEventType();
 		}
 
-		return event.getClass().getName();
+		return getClassEventType(event);
+	}
+
+	/**
+	 * Simply returns the fully-qualified classname of the object.
+	 * 
+	 * @param pojo
+	 * @return
+	 */
+	public static final String getClassEventType(Object pojo)
+	{
+		return pojo.getClass().getName();
 	}
 }

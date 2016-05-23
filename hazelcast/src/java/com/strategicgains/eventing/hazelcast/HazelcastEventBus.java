@@ -21,8 +21,8 @@ import java.util.List;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.strategicgains.eventing.EventBus;
-import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.AbstractEventBus;
+import com.strategicgains.eventing.Consumer;
 
 /**
  * Leverages Hazelcast to create a distrubuted EventBus implementation to
@@ -32,16 +32,16 @@ import com.strategicgains.eventing.EventHandler;
  * @since Jun 27, 2012
  */
 public class HazelcastEventBus<T extends Serializable>
-extends EventBus
+extends AbstractEventBus
 {
 	private HazelcastInstance hazelcast;
 
-	public HazelcastEventBus(String queueName, List<EventHandler> subscribers)
+	public HazelcastEventBus(String queueName, List<Consumer> subscribers)
 	{
 		this(queueName, new Config(), subscribers);
 	}
 
-	public HazelcastEventBus(String queueName, Config config, List<EventHandler> subscribers)
+	public HazelcastEventBus(String queueName, Config config, List<Consumer> subscribers)
 	{
 		super(new HazelcastEventTransport());
 		hazelcast = Hazelcast.newHazelcastInstance(config);
@@ -59,9 +59,9 @@ extends EventBus
 	 * @param queueName the name of the event bus.
 	 * @param subscribers a List of EventHandler instances that subscribed to the event bus.
 	 */
-	private void addSubscribers(List<EventHandler> subscribers)
+	private void addSubscribers(List<Consumer> subscribers)
 	{
-		for (EventHandler handler : subscribers)
+		for (Consumer handler : subscribers)
 		{
 			getTransport().subscribe(handler);
 		}

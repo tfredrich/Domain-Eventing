@@ -16,7 +16,7 @@
 package com.strategicgains.eventing.kafka;
 
 import com.strategicgains.eventing.EventBusBuilder;
-import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.Consumer;
 
 /**
  * @author tfredrich
@@ -26,14 +26,14 @@ public class KafkaEventBusBuilder
 implements EventBusBuilder<KafkaEventBus, KafkaEventBusBuilder>
 {
 	@Override
-	public KafkaEventBusBuilder subscribe(EventHandler handler)
+	public KafkaEventBusBuilder subscribe(Consumer handler)
 	{
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public KafkaEventBusBuilder unsubscribe(EventHandler handler)
+	public KafkaEventBusBuilder unsubscribe(Consumer handler)
 	{
 		// TODO Auto-generated method stub
 		return null;

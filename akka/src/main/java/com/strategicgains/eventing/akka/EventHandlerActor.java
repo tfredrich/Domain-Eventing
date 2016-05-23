@@ -15,7 +15,7 @@
  */
 package com.strategicgains.eventing.akka;
 
-import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.Consumer;
 import com.strategicgains.eventing.Events;
 
 import akka.actor.Props;
@@ -29,9 +29,9 @@ import akka.japi.Creator;
 public class EventHandlerActor
 extends UntypedActor
 {
-	private EventHandler handler;
+	private Consumer handler;
 
-	public EventHandlerActor(EventHandler handler)
+	public EventHandlerActor(Consumer handler)
 	{
 		super();
 		this.handler = handler;
@@ -41,7 +41,7 @@ extends UntypedActor
 	public void onReceive(final Object event)
 	throws Exception
 	{
-		if (event != null && handler.getHandledEventTypes().contains(Events.getEventType(event)))
+		if (event != null && handler.getConsumedEventTypes().contains(Events.getEventType(event)))
 		{
 			getContext().dispatcher().execute(new Runnable()
 			{
@@ -50,7 +50,7 @@ extends UntypedActor
                 {
 					try
                     {
-	                    handler.handle(event);
+	                    handler.consume(event);
                     }
                     catch (Exception e)
                     {
@@ -61,7 +61,7 @@ extends UntypedActor
 		}
 	}
 
-	public static Props props(final EventHandler handler)
+	public static Props props(final Consumer handler)
 	{
 		return Props.create(new ActorFactory(handler));
 	}
@@ -71,9 +71,9 @@ extends UntypedActor
 	{
 		private static final long serialVersionUID = -1142009288324369918L;
 
-		private EventHandler handler;
+		private Consumer handler;
 
-		public ActorFactory(EventHandler handler)
+		public ActorFactory(Consumer handler)
 		{
 			super();
 			this.handler = handler;

@@ -22,7 +22,7 @@ import java.util.Set;
 import akka.actor.ActorSystem;
 
 import com.strategicgains.eventing.EventBusBuilder;
-import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.Consumer;
 
 /**
  * @author tfredrich
@@ -32,7 +32,7 @@ public class AkkaEventBusBuilder
 implements EventBusBuilder<AkkaEventBus, AkkaEventBusBuilder>
 {
 	private ActorSystem actorSystem;
-	private Set<EventHandler> subscribers = new LinkedHashSet<EventHandler>();
+	private Set<Consumer> subscribers = new LinkedHashSet<Consumer>();
 
 	public AkkaEventBusBuilder()
 	{
@@ -46,14 +46,14 @@ implements EventBusBuilder<AkkaEventBus, AkkaEventBusBuilder>
 	}
 
 	@Override
-    public AkkaEventBusBuilder subscribe(EventHandler handler)
+    public AkkaEventBusBuilder subscribe(Consumer handler)
     {
 		subscribers.add(handler);
 	    return this;
     }
 
 	@Override
-    public AkkaEventBusBuilder unsubscribe(EventHandler handler)
+    public AkkaEventBusBuilder unsubscribe(Consumer handler)
     {
 		subscribers.remove(handler);
 	    return this;
@@ -63,7 +63,7 @@ implements EventBusBuilder<AkkaEventBus, AkkaEventBusBuilder>
     public AkkaEventBus build()
     {
 		AkkaEventBus bus = (actorSystem == null ? new AkkaEventBus() : new AkkaEventBus(actorSystem));
-		bus.subscribeAll(Arrays.asList(subscribers.toArray(new EventHandler[0])));
+		bus.subscribeAll(Arrays.asList(subscribers.toArray(new Consumer[0])));
 	    return bus;
     }
 }

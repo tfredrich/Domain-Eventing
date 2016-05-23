@@ -32,27 +32,27 @@ import java.util.Collection;
  * @author toddf
  * @since May 12, 2011
  */
-public interface EventHandler
+public interface Consumer
 {
 	/**
-	 * Process the given event. Called by the EventMonitor when an event occurs.
+	 * Process the given event.
 	 * 
-	 * @param event
+	 * @param event an event or message.
 	 * @throws Exception if something goes wrong
 	 */
-	public void handle(Object event)
+	public void consume(Object event)
 	throws Exception;
 
 	/**
-	 * Provides a list of event types that this EventHandler cares about.
-	 * Only messages of the given types will be sent to this event handler.
+	 * Provides a list of event types that this Consumer can consume.
+	 * Only messages of the given types will be sent to this consumer.
 	 * 
 	 * It is possible to use class names (simple or fully-qualified), however,
 	 * when using non-local event transports such as Kafka or RabbitMQ, these
-	 * event types become topics to which subscriptions are registered. To these
-	 * event types must match topic names in those transports.
+	 * event types become topics to which subscriptions are registered. In
+	 * that case the event types must match topic names in those transports.
 	 * 
-	 * @return
+	 * @return a collection of strings containing event type names.
 	 */
-	public Collection<String> getHandledEventTypes();
+	public Collection<String> getConsumedEventTypes();
 }

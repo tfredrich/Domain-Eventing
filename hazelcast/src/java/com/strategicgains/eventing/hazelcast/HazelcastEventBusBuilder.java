@@ -23,7 +23,7 @@ import java.util.Set;
 
 import com.hazelcast.config.Config;
 import com.strategicgains.eventing.EventBusBuilder;
-import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.Consumer;
 
 /**
  * @author toddf
@@ -36,7 +36,7 @@ implements EventBusBuilder<HazelcastEventBus<T>, HazelcastEventBusBuilder<T>>
 
 	private Config config = null;
 	private String queueName = DEFAULT_QUEUE_NAME;
-	private Set<EventHandler> subscribers = new LinkedHashSet<EventHandler>();
+	private Set<Consumer> subscribers = new LinkedHashSet<Consumer>();
 
 	public HazelcastEventBusBuilder()
 	{
@@ -57,14 +57,14 @@ implements EventBusBuilder<HazelcastEventBus<T>, HazelcastEventBusBuilder<T>>
 	}
 
 	@Override
-	public HazelcastEventBusBuilder<T> subscribe(EventHandler handler)
+	public HazelcastEventBusBuilder<T> subscribe(Consumer handler)
 	{
 		subscribers.add(handler);
 		return this;
 	}
 
 	@Override
-	public HazelcastEventBusBuilder<T> unsubscribe(EventHandler handler)
+	public HazelcastEventBusBuilder<T> unsubscribe(Consumer handler)
 	{
 		subscribers.remove(handler);
 		return this;
@@ -73,7 +73,7 @@ implements EventBusBuilder<HazelcastEventBus<T>, HazelcastEventBusBuilder<T>>
 	@Override
 	public HazelcastEventBus<T> build()
 	{
-		List<EventHandler> subscriberList = Arrays.asList(subscribers.toArray(new EventHandler[0]));
+		List<Consumer> subscriberList = Arrays.asList(subscribers.toArray(new Consumer[0]));
 		return (config == null ? new HazelcastEventBus<T>(queueName, subscriberList) : new HazelcastEventBus<T>(queueName, config, subscriberList));
 	}
 }

@@ -25,15 +25,16 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.strategicgains.eventing.EventHandler;
-import com.strategicgains.eventing.EventTransport;
+import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.Subscription;
+import com.strategicgains.eventing.Transport;
 
 /**
  * @author tfredrich
  * @since 20 May 2016
  */
 public class KafkaEventTransport
-implements EventTransport
+implements Transport
 {
 	private String topic;
 	private Producer<String, String> producer;
@@ -66,15 +67,14 @@ implements EventTransport
 	}
 
 	@Override
-	public boolean subscribe(EventHandler handler)
+	public Subscription subscribe(Consumer handler)
 	{
-		return false;
+		return null;
 	}
 
 	@Override
-	public boolean unsubscribe(EventHandler handler)
+	public void unsubscribe(Subscription subscription)
 	{
-		return false;
 	}
 
 	@Override

@@ -17,17 +17,17 @@ package com.strategicgains.eventing.local;
 
 import java.util.Collection;
 
-import com.strategicgains.eventing.EventBus;
-import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.AbstractEventBus;
+import com.strategicgains.eventing.Consumer;
 
 /**
  * @author toddf
  * @since Feb 6, 2012
  */
 public class LocalEventBus
-extends EventBus
+extends AbstractEventBus
 {
-	public LocalEventBus(Collection<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
+	public LocalEventBus(Collection<Consumer> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
 	{
 		super(new LocalEventTransport(handlers, shouldReraiseOnError, pollDelayMillis));
 	}

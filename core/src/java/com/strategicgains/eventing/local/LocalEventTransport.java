@@ -19,20 +19,21 @@ import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.strategicgains.eventing.EventHandler;
-import com.strategicgains.eventing.EventTransport;
+import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.Subscription;
+import com.strategicgains.eventing.Transport;
 
 /**
  * @author toddf
  * @since Oct 18, 2012
  */
 public class LocalEventTransport
-implements EventTransport
+implements Transport
 {
 	private Queue<Object> queue = new ConcurrentLinkedQueue<>();
 	private EventMonitor monitor;
 
-	public LocalEventTransport(Collection<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
+	public LocalEventTransport(Collection<Consumer> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
 	{
 		super();
 		initializeMonitor(handlers, shouldReraiseOnError, pollDelayMillis);
@@ -41,11 +42,11 @@ implements EventTransport
 	/**
 	 * @param handlers
 	 */
-	private void initializeMonitor(Collection<EventHandler> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
+	private void initializeMonitor(Collection<Consumer> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
 	{
 		monitor = new EventMonitor(this, pollDelayMillis);
 
-		for (EventHandler handler : handlers)
+		for (Consumer handler : handlers)
 		{
 			monitor.register(handler);
 		}
@@ -91,14 +92,14 @@ implements EventTransport
 	}
 
     @Override
-    public boolean subscribe(EventHandler handler)
+    public Subscription subscribe(Consumer handler)
     {
 		return monitor.register(handler);
     }
 
     @Override
-    public boolean unsubscribe(EventHandler handler)
+    public void unsubscribe(Subscription subscription)
     {
-    	return monitor.unregister(handler);
+    	monitor.unregister(subscription.getConsumer());
     }
 }

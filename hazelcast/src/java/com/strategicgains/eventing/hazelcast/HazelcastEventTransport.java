@@ -19,18 +19,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.hazelcast.core.ITopic;
-import com.strategicgains.eventing.EventHandler;
-import com.strategicgains.eventing.EventTransport;
+import com.strategicgains.eventing.BaseSubscription;
+import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.Subscription;
+import com.strategicgains.eventing.Transport;
 
 /**
  * @author toddf
  * @since Oct 18, 2012
  */
 public class HazelcastEventTransport
-implements EventTransport
+implements Transport
 {
 	private ITopic<Object> topic;
-	private Map<EventHandler, String> subscriptions = new ConcurrentHashMap<EventHandler, String>();
+	private Map<Consumer, String> subscriptions = new ConcurrentHashMap<Consumer, String>();
 
 	protected HazelcastEventTransport()
 	{
@@ -61,23 +63,21 @@ implements EventTransport
 	}
 
 	@Override
-	public boolean subscribe(EventHandler handler)
+	public Subscription subscribe(Consumer consumer)
 	{
-		String listenerId = topic.addMessageListener(new EventHandlerAdapter(handler));
-		subscriptions.put(handler, listenerId);
-		return true;
+		String listenerId = topic.addMessageListener(new EventHandlerAdapter(consumer));
+		subscriptions.put(consumer, listenerId);
+		return new BaseSubscription(consumer);
 	}
 
 	@Override
-	public boolean unsubscribe(EventHandler handler)
+	public void unsubscribe(Subscription subscription)
 	{
-		String listenerId = subscriptions.get(handler);
+		String listenerId = subscriptions.get(subscription.getConsumer());
 
 		if (listenerId != null)
 		{
-			return topic.removeMessageListener(listenerId);
+			topic.removeMessageListener(listenerId);
 		}
-
-		return false;
 	}
 }

@@ -6,6 +6,6 @@ implements Event
 	@Override
 	public String getEventType()
 	{
-		return getClass().getName();
+		return Events.getClassEventType(this);
 	}
 }

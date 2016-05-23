@@ -15,12 +15,15 @@
 */
 package com.strategicgains.eventing;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 
 /**
- * DomainEvents defines a static public interface for raising and handling domain events.
+ * DomainEvents defines a static public interface for publishing and consuming domain events.
  * Raising an event pushes it to zero or more configured event buses to be handled asynchronously
  * by a subscribed EventHandler implementor.
  *
@@ -35,25 +38,14 @@ import java.util.Map;
  */
 public class DomainEvents
 {
-	// SECTION: CONSTANTS
-
 	private static final DomainEvents INSTANCE = new DomainEvents();
-
 	
-	// SECTION: INSTANCE VARIABLES
-
-	private Map<String, EventBus> eventBuses = new LinkedHashMap<String, EventBus>();
-
-
-	// SECTION: CONSTRUCTOR
+	private Map<String, EventBus> eventBuses = new LinkedHashMap<>();
 
 	private DomainEvents()
 	{
 		super();
 	}
-
-
-	// SECTION: STATIC METHODS
 
 	/**
 	 * Get the Singleton instance of DomainEvents.
@@ -69,12 +61,12 @@ public class DomainEvents
 	 *
 	 * Event publishing can only occur after event busses are setup.
 	 * 
-	 * @param name the name of a specific event bus.
+	 * @param busName the name of a specific event bus.
 	 * @param event the Object as an event to publish.
 	 */
-	public static void publish(String name, Object event)
+	public static void publish(String busName, Object event)
 	{
-		instance().publishEvent(name, event);
+		instance().publishEvent(busName, event);
 	}
 
 	/**
@@ -90,6 +82,29 @@ public class DomainEvents
 	}
 
 	/**
+	 * Subscribe to events on a named event bus.
+	 * 
+	 * @param busName the name of a specific event bus.
+	 * @param consumer the consumer to call when matching events appear on the bus.
+	 * @return a Subscription indicating the subscription details.
+	 */
+	public static Subscription subscribe(String busName, Consumer consumer)
+	{
+		return instance().subscribeTo(busName, consumer);
+	}
+
+	/**
+	 * Subscribe a consumer to all currently-registered event buses.
+	 * 
+	 * @param consumer the consumer to call when matching events appear on the registered buses.
+	 * @return a Subscription instance.
+	 */
+	public static Collection<Subscription> subscribe(Consumer consumer)
+	{
+		return instance().subscribeTo(consumer);
+	}
+
+	/**
 	 * Register an event bus with the DomainEvents manager.
 	 * 
 	 * @param name the event bus name.  Must be unique within the DomainEvents manager.
@@ -99,6 +114,18 @@ public class DomainEvents
 	public static boolean addBus(String name, EventBus bus)
 	{
 		return instance().addEventBus(name, bus);
+	}
+
+	/**
+	 * Register an event bus with the DomainEvents manager using the buses' fully-qualified
+	 * classname as the name for the bus.
+	 * 
+	 * @param bus a newly-constructed EventBus instance.
+	 * @return true if the name is unique and the event bus was added.  Otherwise, false.
+	 */
+	public static boolean addBus(EventBus bus)
+	{
+		return instance().addEventBus(bus.getClass().getName(), bus);
 	}
 	
 	/**
@@ -123,9 +150,6 @@ public class DomainEvents
 		instance().shutdownAll();
 	}
 
-
-	// SECTION: INSTANCE METHODS
-
 	private boolean addEventBus(String name, EventBus bus)
 	{
 		if (!eventBuses.containsKey(name))
@@ -139,7 +163,14 @@ public class DomainEvents
 	
 	private EventBus getEventBus(String name)
 	{
-		return eventBuses.get(name);
+		EventBus eventBus = eventBuses.get(name);
+
+		if (eventBus == null)
+		{
+			throw new RuntimeException("Unknown event bus name: " + name);
+		}
+
+		return eventBus;
 	}
 	
 	private boolean hasEventBusses()
@@ -172,13 +203,45 @@ public class DomainEvents
 	{
 		assert(hasEventBusses());
 		EventBus eventBus = getEventBus(name);
-		
-		if (eventBus == null)
-		{
-			throw new RuntimeException("Unknown event bus name: " + name);
-		}
-
 		eventBus.publish(event);
+	}
+
+	/**
+	 * Subscribe to events on a named event bus.
+	 * 
+	 * @param name the name of an event bus.
+	 * @param consumer the consumer to call when event appear on the bus.
+	 * @return a Subscription indicating the subscription details.
+	 */
+	private Subscription subscribeTo(String name, Consumer consumer)
+	{
+		assert(hasEventBusses());
+		EventBus eventBus = getEventBus(name);
+		return eventBus.subscribe(consumer);
+	}
+
+	/**
+	 * Subscribe to events on all currently-registered event buses.
+	 * 
+	 * @param consumer the consumer to call when event appear on the bus.
+	 * @return a collection of Subscription instances, one for each bus subscribed-to.
+	 */
+	private Collection<Subscription> subscribeTo(Consumer consumer)
+	{
+		assert(hasEventBusses());
+
+		List<Subscription> subscriptions = new ArrayList<>(eventBuses.size());
+
+		eventBuses.values().forEach(new java.util.function.Consumer<EventBus>()
+		{
+			@Override
+			public void accept(EventBus bus)
+			{
+				subscriptions.add(bus.subscribe(consumer));				
+			}
+		});
+
+		return subscriptions;
 	}
 
 	private void shutdownAll()
