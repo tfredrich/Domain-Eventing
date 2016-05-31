@@ -30,17 +30,17 @@ import com.strategicgains.eventing.Consumer;
  * @author toddf
  * @since Oct 4, 2012
  */
-public class LocalEventBusBuilderTest
+public class LocalTransportBuilderTest
 {
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-	private LocalEventBus eventBus;
+	private LocalTransport eventBus;
 
 	@Before
 	public void setup()
 	{
-		eventBus = new LocalEventBusBuilder()
+		eventBus = new LocalTransportBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
@@ -103,7 +103,7 @@ public class LocalEventBusBuilderTest
 	public void shouldRetryEventHandler()
 	throws Exception
 	{
-		eventBus = new LocalEventBusBuilder()
+		eventBus = new LocalTransportBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)

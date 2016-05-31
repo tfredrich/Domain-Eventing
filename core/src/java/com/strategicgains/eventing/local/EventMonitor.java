@@ -53,13 +53,13 @@ extends Thread
 	private Set<Consumer> handlers = new LinkedHashSet<Consumer>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
-	private LocalEventTransport eventQueue;
+	private LocalTransport eventQueue;
 	private long delay;
 
 
 	// SECTION: CONSTRUCTORS
 
-	public EventMonitor(LocalEventTransport queue, long pollDelayMillis)
+	public EventMonitor(LocalTransport queue, long pollDelayMillis)
 	{
 		super();
 		setDaemon(true);

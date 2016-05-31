@@ -25,6 +25,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.Producer;
+import com.strategicgains.eventing.Transport;
 
 /**
  * @author toddf
@@ -36,12 +38,12 @@ public class LocalEventBusTest
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-	private LocalEventBus queue;
+	private LocalTransport queue;
 
 	@Before
 	public void setup()
 	{
-		queue = new LocalEventBus(Arrays.asList(handler, ignoredHandler, longHandler), false, 0L);
+		queue = new LocalTransport(Arrays.asList(handler, ignoredHandler, longHandler), false, 0L);
 	}
 	
 	@After
@@ -142,7 +144,20 @@ public class LocalEventBusTest
 	public void shouldOnlyPublishSelected()
 	throws Exception
 	{
-		queue.addPublishableEventType(HandledEvent.class.getName());
+		queue.register(new Producer()
+		{
+			@Override
+			public void publish(Object event, Transport transport)
+			throws Exception
+			{
+			}
+			
+			@Override
+			public Collection<String> getProducedEventTypes()
+			{
+				return Arrays.asList(HandledEvent.class.getName());
+			}
+		});
 
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());

@@ -25,8 +25,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.strategicgains.eventing.local.LocalEventBus;
-import com.strategicgains.eventing.local.LocalEventBusBuilder;
+import com.strategicgains.eventing.local.LocalTransport;
+import com.strategicgains.eventing.local.LocalTransportBuilder;
 
 
 /**
@@ -42,12 +42,12 @@ public class DomainEventsTest
 	@Before
 	public void setup()
 	{
-		AbstractEventBus q = new LocalEventBusBuilder()
+		Transport q = new LocalTransportBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
 			.build();
-		DomainEvents.addBus("primary", q);
+		DomainEvents.addTransport("primary", q);
 	}
 	
 	@After
@@ -112,7 +112,7 @@ public class DomainEventsTest
 	public void shouldRetryEventHandler()
 	throws Exception
 	{
-		((LocalEventBus) DomainEvents.getBus("primary")).retryOnError(true);
+		((LocalTransport) DomainEvents.getTransport("primary")).retryOnError(true);
 		assertEquals(0, handler.getCallCount());
 		DomainEvents.publish(new ErroredEvent());
 		Thread.sleep(150);
@@ -154,7 +154,20 @@ public class DomainEventsTest
 	public void shouldOnlyPublishSelected()
 	throws Exception
 	{
-		((LocalEventBus) DomainEvents.getBus("primary")).addPublishableEventType(HandledEvent.class.getName());
+		((LocalTransport) DomainEvents.getTransport("primary")).register(new Producer()
+		{
+			@Override
+			public void publish(Object event, Transport transport)
+			throws Exception
+			{
+			}
+			
+			@Override
+			public Collection<String> getProducedEventTypes()
+			{
+				return Arrays.asList(HandledEvent.class.getName());
+			}
+		});
 
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
@@ -178,13 +191,26 @@ public class DomainEventsTest
 	public void shouldPublishMultipleBusses()
 	throws Exception
 	{
-		AbstractEventBus q = new LocalEventBusBuilder()
+		Transport q = new LocalTransportBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
-			.addPublishableEventType(HandledEvent.class.getName())
+			.register(new Producer()
+			{
+				@Override
+				public void publish(Object event, Transport transport)
+				throws Exception
+				{
+				}
+				
+				@Override
+				public Collection<String> getProducedEventTypes()
+				{
+					return Arrays.asList(HandledEvent.class.getName());
+				}
+			})
 			.build();
-		DomainEvents.addBus("secondary", q);
+		DomainEvents.addTransport("secondary", q);
 
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());

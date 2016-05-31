@@ -16,27 +16,36 @@
 package com.strategicgains.eventing.local;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.strategicgains.eventing.BaseRegistration;
 import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.Events;
+import com.strategicgains.eventing.Producer;
+import com.strategicgains.eventing.Registration;
 import com.strategicgains.eventing.Subscription;
 import com.strategicgains.eventing.Transport;
 
 /**
+ * An Event Transport within the current JVM. Messages will never be published outside the existing JVM.
+ * 
  * @author toddf
  * @since Oct 18, 2012
  */
-public class LocalEventTransport
+public class LocalTransport
 implements Transport
 {
+	private Set<Producer> producers = new HashSet<>();
 	private Queue<Object> queue = new ConcurrentLinkedQueue<>();
 	private EventMonitor monitor;
 
-	public LocalEventTransport(Collection<Consumer> handlers, boolean shouldReraiseOnError, long pollDelayMillis)
+	public LocalTransport(Collection<Consumer> consumers, boolean shouldReraiseOnError, long pollDelayMillis)
 	{
 		super();
-		initializeMonitor(handlers, shouldReraiseOnError, pollDelayMillis);
+		initializeMonitor(consumers, shouldReraiseOnError, pollDelayMillis);
 	}
 
 	/**
@@ -66,14 +75,39 @@ implements Transport
 	}
 
 	@Override
-	public void publish(Object event)
+	public boolean publish(Object event)
 	{
-		queue.add(event);
+		String eventType = Events.getEventType(event);
+		boolean isAdded = false;
 
-		synchronized (this)
+		if (producers.isEmpty())
 		{
-			notifyAll();
+			queue.add(event);
+			isAdded = true;
 		}
+		else
+		{
+			for(Producer producer : producers)
+			{
+				if (producer.getProducedEventTypes().contains(eventType))
+				{
+//					producer.publish(eventType, this);
+					queue.add(event);
+					isAdded = true;
+					break;
+				}
+			}
+		}
+
+		if (isAdded)
+		{
+			synchronized (this)
+			{
+				notifyAll();
+			}
+		}
+
+		return isAdded;
 	}
 
 	/**
@@ -102,4 +136,17 @@ implements Transport
     {
     	monitor.unregister(subscription.getConsumer());
     }
+
+	@Override
+	public Registration register(Producer producer)
+	{
+		producers.add(producer);
+		return new BaseRegistration(producer);
+	}
+
+	@Override
+	public void unregister(Registration registration)
+	{
+		producers.remove(registration.getProducer());
+	}
 }

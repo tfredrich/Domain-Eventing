@@ -15,12 +15,12 @@
  */
 package com.strategicgains.eventing.local;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import com.strategicgains.eventing.EventBusBuilder;
 import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.Producer;
+import com.strategicgains.eventing.TransportBuilder;
 
 /**
  * Configure and build a local EventQueue that receives events only within the current JVM.
@@ -28,69 +28,68 @@ import com.strategicgains.eventing.Consumer;
  * @author toddf
  * @since Oct 4, 2012
  */
-public class LocalEventBusBuilder
-implements EventBusBuilder<LocalEventBus, LocalEventBusBuilder>
+public class LocalTransportBuilder
+implements TransportBuilder<LocalTransport, LocalTransportBuilder>
 {
 	private static final long DEFAULT_POLL_DELAY = 0L;
 
-	private Set<Consumer> subscribers = new LinkedHashSet<>();
-	private Set<String> publishableEventTypes = new HashSet<>();
+	private Set<Producer> producers = new LinkedHashSet<>();
+	private Set<Consumer> consumers = new LinkedHashSet<>();
 	private boolean shouldRepublishOnError = false;
 	private long pollDelay = DEFAULT_POLL_DELAY;
 
-	public LocalEventBusBuilder()
+	public LocalTransportBuilder()
 	{
 		super();
 	}
 
 	@Override
-	public LocalEventBus build()
+	public LocalTransport build()
 	{
-		assert(!subscribers.isEmpty());
+		LocalTransport t = new LocalTransport(consumers, shouldRepublishOnError, pollDelay);
 
-		LocalEventBus bus = new LocalEventBus(subscribers, shouldRepublishOnError, pollDelay);
-		
-		for (String eventType : publishableEventTypes)
+		producers.forEach(new java.util.function.Consumer<Producer>()
 		{
-			bus.addPublishableEventType(eventType);
-		}
-		
-		return bus;
+			@Override
+			public void accept(Producer producer)
+			{
+				t.register(producer);
+			}
+		});
+
+		return t;
 	}
 
-    public LocalEventBusBuilder shouldRepublishOnError(boolean value)
+    public LocalTransportBuilder shouldRepublishOnError(boolean value)
     {
     	this.shouldRepublishOnError = value;
 	    return this;
     }
     
-    public LocalEventBusBuilder pollDelay(long millis)
+    public LocalTransportBuilder pollDelay(long millis)
     {
     	this.pollDelay = millis;
     	return this;
     }
 
     @Override
-    public LocalEventBusBuilder subscribe(Consumer handler)
+    public LocalTransportBuilder subscribe(Consumer handler)
     {
-    	if (!subscribers.contains(handler))
-    	{
-    		subscribers.add(handler);
-    	}
-    	
+   		consumers.add(handler);
     	return this;
     }
 
     @Override
-    public LocalEventBusBuilder unsubscribe(Consumer handler)
+    public LocalTransportBuilder unsubscribe(Consumer handler)
     {
-    	subscribers.remove(handler);
+    	consumers.remove(handler);
     	return this;
     }
-    
-    public LocalEventBusBuilder addPublishableEventType(String eventType)
-    {
-    	publishableEventTypes.add(eventType);
-    	return this;
-    }
+
+	@Override
+	public LocalTransportBuilder register(Producer producer)
+	{
+		producers.add(producer);
+		return this;
+	}
 }

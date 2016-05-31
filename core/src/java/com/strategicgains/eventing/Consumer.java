@@ -18,16 +18,15 @@ package com.strategicgains.eventing;
 import java.util.Collection;
 
 /**
- * Defines the interface for objects that can process (handle) domain events
+ * Defines the interface for objects that can consume (process or handle) domain events
  * of particular type(s).
  * 
- * Implementations of this interface are registered with the EventBus via
- * a call to subscribe(EventHandler) on the event bus itself. There is no
- * processing of the event object before it is sent to the event handler.
+ * Implementations of this interface are registered with a {@link Transport} via
+ * a call to subscribe(Consumer) on the event transport itself. There is no
+ * processing of the event object before it is sent to the consumer.
  * 
- * Depending on the underlying implementation of the transport system for the
- * event bus, the act of subscribing may materialize a subscription in an external
- * messaging system.
+ * Depending on the underlying implementation of the transport system, the act of
+ * subscribing may materialize a subscription in an external messaging system.
  * 
  * @author toddf
  * @since May 12, 2011
@@ -44,7 +43,7 @@ public interface Consumer
 	throws Exception;
 
 	/**
-	 * Provides a list of event types that this Consumer can consume.
+	 * Provides a list of event types that this Consumer can process.
 	 * Only messages of the given types will be sent to this consumer.
 	 * 
 	 * It is possible to use class names (simple or fully-qualified), however,

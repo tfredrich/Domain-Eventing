@@ -19,10 +19,10 @@ public class Events
 	{
 		if (Event.class.isAssignableFrom(event.getClass()))
 		{
-			return ((Event)event).getEventType();
+			return ((Event)event).getType();
 		}
 
-		return getClassEventType(event);
+		return getClassName(event);
 	}
 
 	/**
@@ -31,7 +31,7 @@ public class Events
 	 * @param pojo
 	 * @return
 	 */
-	public static final String getClassEventType(Object pojo)
+	public static final String getClassName(Object pojo)
 	{
 		return pojo.getClass().getName();
 	}

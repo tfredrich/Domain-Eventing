@@ -17,32 +17,41 @@ package com.strategicgains.eventing;
 
 /**
  * An event transport is an underlying implementation of a messaging
- * infrastructure. Note that there is no concept of 'topic' here. All
- * publishing is using a'topic concept with the assumption being that
- * there is 'one topic per event type'. This means that the event type
- * of every event getting published becomes essentially the topic name. 
+ * infrastructure. Note that there is no concept of 'topic' or 'queue'
+ * here.
+ * 
+ * All publishing is using a publish-subscribe metaphor more in the
+ * JMS 'topic' sense. There can always be multiple subscribers to an event.
+ * 
+ * Depending on the underlying implementation though, there may be
+ * multiple event types on a single channel.
  * 
  * @author toddf
  * @since Oct 18, 2012
  */
 public interface Transport
 {
+	public Registration register(Producer producer);
+
+	public void unregister(Registration registration);
+
 	/**
 	 * Publish and event to this event transport. If the event is an
 	 * {@link Event} implementation, the value returned from getEventType()
 	 * becomes the topic name.
 	 * 
 	 * @param event the event instance.
+	 * @return true if this transport is capabable of publishing events of this type. Otherwise, false.
 	 */
-	public void publish(Object event);
+	public boolean publish(Object event);
 
 	/**
 	 * Subscribe a consumer to this event transport for the given eventTypes.
 	 * 
-	 * @param handler an event handler that implements the {@link Consumer} interface.
+	 * @param consumer an event handler that implements the {@link Consumer} interface.
 	 * @return a Subscription instance.
 	 */
-	public Subscription subscribe(Consumer handler);
+	public Subscription subscribe(Consumer consumer);
 
 	/**
 	 * Remove a subscription from the underlying event transport.
@@ -52,8 +61,7 @@ public interface Transport
 	public void unsubscribe(Subscription subscription);
 
 	/**
-	 * Terminate event handling on the transport and free all consumed
-	 * resources.
+	 * Terminate event handling on the transport and free all consumed resources.
 	 */
 	public void shutdown();
 }
