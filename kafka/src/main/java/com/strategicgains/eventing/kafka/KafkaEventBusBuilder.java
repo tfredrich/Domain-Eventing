@@ -15,33 +15,55 @@
 */
 package com.strategicgains.eventing.kafka;
 
-import com.strategicgains.eventing.EventBusBuilder;
+import java.util.LinkedHashSet;
+import java.util.Properties;
+import java.util.Set;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.TransportBuilder;
 
 /**
  * @author tfredrich
  * @since 20 May 2016
  */
 public class KafkaEventBusBuilder
-implements EventBusBuilder<KafkaEventBus, KafkaEventBusBuilder>
+implements TransportBuilder<KafkaEventBus, KafkaEventBusBuilder>
 {
-	@Override
-	public KafkaEventBusBuilder subscribe(Consumer handler)
+	private Properties config;
+	private ObjectMapper mapper;
+	private Set<Consumer> consumers = new LinkedHashSet<>();
+
+	public KafkaEventBusBuilder configuration(Properties props)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		this.config = props;
+		return this;
+	}
+
+	public KafkaEventBusBuilder jsonMapper(ObjectMapper mapper)
+	{
+		this.mapper = mapper;
+		return this;
 	}
 
 	@Override
-	public KafkaEventBusBuilder unsubscribe(Consumer handler)
+	public KafkaEventBusBuilder subscribe(Consumer consumer)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		consumers.add(consumer);
+		return this;
+	}
+
+	@Override
+	public KafkaEventBusBuilder unsubscribe(Consumer consumer)
+	{
+		consumers.remove(consumer);
+		return this;
 	}
 
 	@Override
 	public KafkaEventBus build()
 	{
+		KafkaEventBus bus = new KafkaEventBus(config, topic, mapper);
 		// TODO Auto-generated method stub
 		return null;
 	}

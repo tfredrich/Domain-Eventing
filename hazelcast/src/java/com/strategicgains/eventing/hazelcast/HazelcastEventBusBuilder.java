@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.hazelcast.config.Config;
-import com.strategicgains.eventing.EventBusBuilder;
+import com.strategicgains.eventing.TransportBuilder;
 import com.strategicgains.eventing.Consumer;
 
 /**
@@ -30,7 +30,7 @@ import com.strategicgains.eventing.Consumer;
  * @since Oct 5, 2012
  */
 public class HazelcastEventBusBuilder<T extends Serializable>
-implements EventBusBuilder<HazelcastEventBus<T>, HazelcastEventBusBuilder<T>>
+implements TransportBuilder<HazelcastEventBus<T>, HazelcastEventBusBuilder<T>>
 {
 	private static final String DEFAULT_QUEUE_NAME = "domain-events";
 

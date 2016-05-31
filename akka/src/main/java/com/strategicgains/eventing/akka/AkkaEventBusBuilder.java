@@ -21,7 +21,7 @@ import java.util.Set;
 
 import akka.actor.ActorSystem;
 
-import com.strategicgains.eventing.EventBusBuilder;
+import com.strategicgains.eventing.TransportBuilder;
 import com.strategicgains.eventing.Consumer;
 
 /**
@@ -29,7 +29,7 @@ import com.strategicgains.eventing.Consumer;
  * @since Jul 13, 2015
  */
 public class AkkaEventBusBuilder
-implements EventBusBuilder<AkkaEventBus, AkkaEventBusBuilder>
+implements TransportBuilder<AkkaEventBus, AkkaEventBusBuilder>
 {
 	private ActorSystem actorSystem;
 	private Set<Consumer> subscribers = new LinkedHashSet<Consumer>();
