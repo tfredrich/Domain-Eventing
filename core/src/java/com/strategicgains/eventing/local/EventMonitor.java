@@ -15,26 +15,22 @@
 */
 package com.strategicgains.eventing.local;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import com.strategicgains.eventing.BaseSubscription;
-import com.strategicgains.eventing.Consumer;
-import com.strategicgains.eventing.Events;
-import com.strategicgains.eventing.Subscription;
+import com.strategicgains.eventing.EventConsumer;
+import com.strategicgains.eventing.EventHandler;
 
 /**
  * A thread that receives published events and sends them to subscribers.
- * Registered event handlers will be called for whatever event types each can process.
+ * Registered event {@link EventConsumer}s will be called for whatever event types each can process.
  * 
- * EventHandlers are called using an Executor pool that grows dynamically as needed, so
+ * {@link EventConsumer}s are called using an Executor pool that grows dynamically as needed, so
  * they are run asynchronously.
+ * 
+ * Events that have no consumers are simply removed from the queue and ignored.
  * 
  * @author toddf
  * @since May 17, 2011
@@ -49,17 +45,16 @@ extends Thread
 	
 	// SECTION: INSTANCE METHODS
 
-	private Map<String, List<Consumer>> consumersByEvent = new ConcurrentHashMap<>();
-	private Set<Consumer> handlers = new LinkedHashSet<Consumer>();
+	private Set<EventHandler> handlers = new LinkedHashSet<>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
-	private LocalTransport eventQueue;
+	private LocalEventChannel eventQueue;
 	private long delay;
 
 
 	// SECTION: CONSTRUCTORS
 
-	public EventMonitor(LocalTransport queue, long pollDelayMillis)
+	public EventMonitor(LocalEventChannel queue, long pollDelayMillis)
 	{
 		super();
 		setDaemon(true);
@@ -70,22 +65,14 @@ extends Thread
 	
 	// SECTION: INSTANCE METHODS
 
-	public synchronized Subscription register(Consumer handler)
+	public synchronized boolean register(EventHandler handler)
 	{
-		handlers.add(handler);
-		consumersByEvent.clear();
-		return new BaseSubscription(handler);
+		return handlers.add(handler);
 	}
 
-	public synchronized boolean unregister(Consumer handler)
+	public synchronized boolean unregister(EventHandler handler)
 	{
-		if (handlers.remove(handler))
-		{
-			consumersByEvent.clear();
-			return true;
-		}
-		
-		return false;
+		return handlers.remove(handler);
 	}
 
 	public void shutdown()
@@ -140,7 +127,7 @@ extends Thread
 		}
 		
 		System.out.println("Event monitor exiting...");
-		clearAllConsumers();
+		handlers.clear();
 	}
 
 	/**
@@ -151,7 +138,7 @@ extends Thread
 	private void processEvent(final Object event)
     {
 	    System.out.println("Processing event: " + event.toString());
-	    for (final Consumer handler : getConsumersFor(event))
+	    for (final EventHandler handler : handlers)
 	    {
     		EVENT_EXECUTOR.execute(new Runnable(){
 				@Override
@@ -159,7 +146,7 @@ extends Thread
                 {
 			    	try
 			    	{
-			    		handler.consume(event);
+			    		handler.handle(event);
 			    	}
 			    	catch(Exception e)
 			    	{
@@ -168,42 +155,18 @@ extends Thread
 			    		if (shouldReRaiseOnError)
 			    		{
 			    			System.out.println("Event handler failed. Re-publishing event: " + event.toString());
-			    			eventQueue.publish(event);
+			    			try
+			    			{
+								eventQueue.publish(event);
+							}
+			    			catch (Exception e1)
+			    			{
+								e1.printStackTrace();
+							}
 			    		}
 			    	}
                 }
     		});
 	    }
     }
-
-	
-	// SECTION: UTILITY - PRIVATE
-
-	private void clearAllConsumers()
-    {
-	    handlers.clear();
-		consumersByEvent.clear();
-    }
-
-	private synchronized List<Consumer> getConsumersFor(Object event)
-	{
-		String eventType = Events.getEventType(event);
-		List<Consumer> result = consumersByEvent.get(eventType);
-		
-		if (result == null)
-		{
-			result = new ArrayList<Consumer>();
-			consumersByEvent.put(eventType, result);
-			
-			for (Consumer consumer : handlers)
-			{
-				if (consumer.getConsumedEventTypes().contains(eventType))
-				{
-					result.add(consumer);
-				}
-			}
-		}
-
-		return result;
-	}
 }

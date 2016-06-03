@@ -18,15 +18,12 @@ package com.strategicgains.eventing;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.strategicgains.eventing.local.LocalTransport;
-import com.strategicgains.eventing.local.LocalTransportBuilder;
+import com.strategicgains.eventing.local.LocalEventChannel;
+import com.strategicgains.eventing.local.LocalEventChannelBuilder;
 
 
 /**
@@ -35,6 +32,7 @@ import com.strategicgains.eventing.local.LocalTransportBuilder;
  */
 public class DomainEventsTest
 {
+	private static final int PAUSE_MILLIS = 150;
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
@@ -42,12 +40,12 @@ public class DomainEventsTest
 	@Before
 	public void setup()
 	{
-		Transport q = new LocalTransportBuilder()
+		EventChannel q = new LocalEventChannelBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
 			.build();
-		DomainEvents.addTransport("primary", q);
+		DomainEvents.addChannel("primary", q);
 	}
 	
 	@After
@@ -68,7 +66,7 @@ public class DomainEventsTest
 	{
 		assertEquals(0, handler.getCallCount());
 		DomainEvents.publish(new HandledEvent());
-		Thread.sleep(150);
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -112,7 +110,7 @@ public class DomainEventsTest
 	public void shouldRetryEventHandler()
 	throws Exception
 	{
-		((LocalTransport) DomainEvents.getTransport("primary")).retryOnError(true);
+		((LocalEventChannel) DomainEvents.getChannel("primary")).retryOnError(true);
 		assertEquals(0, handler.getCallCount());
 		DomainEvents.publish(new ErroredEvent());
 		Thread.sleep(150);
@@ -154,20 +152,22 @@ public class DomainEventsTest
 	public void shouldOnlyPublishSelected()
 	throws Exception
 	{
-		((LocalTransport) DomainEvents.getTransport("primary")).register(new Producer()
-		{
-			@Override
-			public void publish(Object event, Transport transport)
-			throws Exception
-			{
-			}
-			
-			@Override
-			public Collection<String> getProducedEventTypes()
-			{
-				return Arrays.asList(HandledEvent.class.getName());
-			}
-		});
+//		((LocalEventChannel) DomainEvents.getTransport("primary"))
+//		.register(new EventProducer()
+//		{
+//			@Override
+//			public Object produce(Object event)
+//			throws Exception
+//			{
+//				return event;
+//			}
+//			
+//			@Override
+//			public Collection<String> getProducedEventTypes()
+//			{
+//				return Arrays.asList(HandledEvent.class.getName());
+//			}
+//		});
 
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
@@ -191,26 +191,27 @@ public class DomainEventsTest
 	public void shouldPublishMultipleBusses()
 	throws Exception
 	{
-		Transport q = new LocalTransportBuilder()
+		EventChannel q = new LocalEventChannelBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
-			.register(new Producer()
-			{
-				@Override
-				public void publish(Object event, Transport transport)
-				throws Exception
-				{
-				}
-				
-				@Override
-				public Collection<String> getProducedEventTypes()
-				{
-					return Arrays.asList(HandledEvent.class.getName());
-				}
-			})
+//			.register(new EventProducer()
+//			{
+//				@Override
+//				public Object produce(Object event)
+//				throws Exception
+//				{
+//					return event;
+//				}
+//				
+//				@Override
+//				public Collection<String> getProducedEventTypes()
+//				{
+//					return Arrays.asList(HandledEvent.class.getName());
+//				}
+//			})
 			.build();
-		DomainEvents.addTransport("secondary", q);
+		DomainEvents.addChannel("secondary", q);
 
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
@@ -265,12 +266,12 @@ public class DomainEventsTest
 	}
 
 	private static class DomainEventsTestHandler
-	implements Consumer
+	implements EventHandler, EventPredicate
 	{
 		private int callCount = 0;
 
 		@Override
-		public void consume(Object event)
+		public void handle(Object event)
 		{
 			assert(HandledEvent.class.isAssignableFrom(event.getClass()));
 
@@ -284,19 +285,19 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public Collection<String> getConsumedEventTypes()
+		public boolean evaluate(Object event)
 		{
-			return Arrays.asList(HandledEvent.class.getName(), ErroredEvent.class.getName());
+			return (event instanceof HandledEvent || event instanceof ErroredEvent);
 		}
 	}
 
 	private static class DomainEventsTestIgnoredEventsHandler
-	implements Consumer
+	implements EventHandler, EventPredicate
 	{
 		private int callCount = 0;
 
 		@Override
-		public void consume(Object event)
+		public void handle(Object event)
 		{
 			assert(event.getClass().equals(IgnoredEvent.class));
 			++callCount;
@@ -308,19 +309,19 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public Collection<String> getConsumedEventTypes()
+		public boolean evaluate(Object event)
 		{
-			return Arrays.asList(IgnoredEvent.class.getName());
+			return (event instanceof IgnoredEvent);
 		}
 	}
 
 	private static class DomainEventsTestLongEventHandler
-	implements Consumer
+	implements EventHandler, EventPredicate
 	{
 		private int callCount = 0;
 
 		@Override
-		public void consume(Object event)
+		public void handle(Object event)
 		{
 			assert(event.getClass().equals(LongEvent.class));
 			++callCount;
@@ -342,9 +343,9 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public Collection<String> getConsumedEventTypes()
+		public boolean evaluate(Object event)
 		{
-			return Arrays.asList(LongEvent.class.getName());
+			return (event instanceof LongEvent);
 		}
 	}
 }

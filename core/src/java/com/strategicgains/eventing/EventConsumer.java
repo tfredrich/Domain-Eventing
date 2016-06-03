@@ -18,22 +18,13 @@ package com.strategicgains.eventing;
 /**
  * 
  * @author tfredrich
- * @since 23 May 2016
+ * @since 2 Jun 2016
  */
-public class BaseSubscription
-implements Subscription
+public interface EventConsumer
 {
-	private Consumer consumer;
-
-	public BaseSubscription(Consumer consumer)
-	{
-		super();
-		this.consumer = consumer;
-	}
-
-	@Override
-	public Consumer getConsumer()
-	{
-		return consumer;
-	}
+	/**
+	 * Start consuming events from a {@link Consumable}
+	 * 
+	 */
+	void consume(Consumable consumable);
 }

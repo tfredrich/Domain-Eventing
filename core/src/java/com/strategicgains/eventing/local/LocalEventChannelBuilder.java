@@ -18,9 +18,8 @@ package com.strategicgains.eventing.local;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import com.strategicgains.eventing.Consumer;
-import com.strategicgains.eventing.Producer;
-import com.strategicgains.eventing.TransportBuilder;
+import com.strategicgains.eventing.EventChannelBuilder;
+import com.strategicgains.eventing.EventHandler;
 
 /**
  * Configure and build a local EventQueue that receives events only within the current JVM.
@@ -28,68 +27,49 @@ import com.strategicgains.eventing.TransportBuilder;
  * @author toddf
  * @since Oct 4, 2012
  */
-public class LocalTransportBuilder
-implements TransportBuilder<LocalTransport, LocalTransportBuilder>
+public class LocalEventChannelBuilder
+implements EventChannelBuilder<LocalEventChannel, LocalEventChannelBuilder>
 {
 	private static final long DEFAULT_POLL_DELAY = 0L;
 
-	private Set<Producer> producers = new LinkedHashSet<>();
-	private Set<Consumer> consumers = new LinkedHashSet<>();
+	private Set<EventHandler> handlers = new LinkedHashSet<>();
 	private boolean shouldRepublishOnError = false;
 	private long pollDelay = DEFAULT_POLL_DELAY;
 
-	public LocalTransportBuilder()
+	public LocalEventChannelBuilder()
 	{
 		super();
 	}
 
 	@Override
-	public LocalTransport build()
+	public LocalEventChannel build()
 	{
-		LocalTransport t = new LocalTransport(consumers, shouldRepublishOnError, pollDelay);
-
-		producers.forEach(new java.util.function.Consumer<Producer>()
-		{
-			@Override
-			public void accept(Producer producer)
-			{
-				t.register(producer);
-			}
-		});
-
-		return t;
+		return new LocalEventChannel(shouldRepublishOnError, pollDelay, handlers);
 	}
 
-    public LocalTransportBuilder shouldRepublishOnError(boolean value)
+    public LocalEventChannelBuilder shouldRepublishOnError(boolean value)
     {
     	this.shouldRepublishOnError = value;
 	    return this;
     }
     
-    public LocalTransportBuilder pollDelay(long millis)
+    public LocalEventChannelBuilder pollDelay(long millis)
     {
     	this.pollDelay = millis;
     	return this;
     }
 
     @Override
-    public LocalTransportBuilder subscribe(Consumer handler)
+    public LocalEventChannelBuilder subscribe(EventHandler handler)
     {
-   		consumers.add(handler);
+   		handlers.add(handler);
     	return this;
     }
 
     @Override
-    public LocalTransportBuilder unsubscribe(Consumer handler)
+    public LocalEventChannelBuilder unsubscribe(EventHandler handler)
     {
-    	consumers.remove(handler);
+    	handlers.remove(handler);
     	return this;
     }
-
-	@Override
-	public LocalTransportBuilder register(Producer producer)
-	{
-		producers.add(producer);
-		return this;
-	}
 }

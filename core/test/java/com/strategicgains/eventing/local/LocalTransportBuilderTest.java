@@ -17,14 +17,12 @@ package com.strategicgains.eventing.local;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.EventPredicate;
 
 /**
  * @author toddf
@@ -35,12 +33,12 @@ public class LocalTransportBuilderTest
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-	private LocalTransport eventBus;
+	private LocalEventChannel eventBus;
 
 	@Before
 	public void setup()
 	{
-		eventBus = new LocalTransportBuilder()
+		eventBus = new LocalEventChannelBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
@@ -103,7 +101,7 @@ public class LocalTransportBuilderTest
 	public void shouldRetryEventHandler()
 	throws Exception
 	{
-		eventBus = new LocalTransportBuilder()
+		eventBus = new LocalEventChannelBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
@@ -181,12 +179,12 @@ public class LocalTransportBuilderTest
 	}
 
 	private static class DomainEventsTestHandler
-	implements Consumer
+	implements EventHandler, EventPredicate
 	{
 		private int callCount = 0;
 
 		@Override
-		public void consume(Object event)
+		public void handle(Object event)
 		{
 			assert(HandledEvent.class.isAssignableFrom(event.getClass()));
 
@@ -200,19 +198,19 @@ public class LocalTransportBuilderTest
 		}
 
 		@Override
-		public Collection<String> getConsumedEventTypes()
+		public boolean evaluate(Object event)
 		{
-			return Arrays.asList(HandledEvent.class.getName(), ErroredEvent.class.getName());
+			return (event instanceof HandledEvent || event instanceof ErroredEvent);
 		}		
 	}
 
 	private static class DomainEventsTestIgnoredEventsHandler
-	implements Consumer
+	implements EventHandler, EventPredicate
 	{
 		private int callCount = 0;
 
 		@Override
-		public void consume(Object event)
+		public void handle(Object event)
 		{
 			assert(event.getClass().equals(IgnoredEvent.class));
 			++callCount;
@@ -224,19 +222,19 @@ public class LocalTransportBuilderTest
 		}
 
 		@Override
-		public Collection<String> getConsumedEventTypes()
+		public boolean evaluate(Object event)
 		{
-			return Arrays.asList(IgnoredEvent.class.getName());
+			return (event instanceof IgnoredEvent);
 		}		
 	}
 
 	private static class DomainEventsTestLongEventHandler
-	implements Consumer
+	implements EventHandler, EventPredicate
 	{
 		private int callCount = 0;
 
 		@Override
-		public void consume(Object event)
+		public void handle(Object event)
 		{
 			assert(event.getClass().equals(LongEvent.class));
 			++callCount;
@@ -258,9 +256,9 @@ public class LocalTransportBuilderTest
 		}
 
 		@Override
-		public Collection<String> getConsumedEventTypes()
+		public boolean evaluate(Object event)
 		{
-			return Arrays.asList(LongEvent.class.getName());
+			return(event instanceof LongEvent);
 		}		
 	}
 }

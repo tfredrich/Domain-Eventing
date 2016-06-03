@@ -15,10 +15,7 @@
 */
 package com.strategicgains.eventing;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -40,7 +37,7 @@ public class DomainEvents
 {
 	private static final DomainEvents INSTANCE = new DomainEvents();
 
-	private Map<String, Transport> transports = new LinkedHashMap<>();
+	private Map<String, EventChannel> channels = new LinkedHashMap<>();
 
 	private DomainEvents()
 	{
@@ -56,17 +53,17 @@ public class DomainEvents
 	}
 
 	/**
-	 * Publish an event to a named event bus.
-	 * The name of the bus is assigned during a call to addBus(String, EventBus).
+	 * Publish an event to a named event channel.
+	 * The name of the bus is assigned during a call to addChannel(String, EventChannel).
 	 *
 	 * Event publishing can only occur after transports are setup and added.
 	 * 
-	 * @param transportName the name of a specific transport.
+	 * @param channelName the name of a specific event channel.
 	 * @param event the Object as an event to publish.
 	 */
-	public static void publish(String transportName, Object event)
+	public static void publish(String channelName, Object event)
 	{
-		instance()._publish(transportName, event);
+		instance()._publish(channelName, event);
 	}
 
 	/**
@@ -75,6 +72,7 @@ public class DomainEvents
 	 * Event publishing can only occur after event busses are setup.
 	 * 
 	 * @param event the Object as an event to publish.
+	 * @throws Exception 
 	 */
 	public static void publish(Object event)
 	{
@@ -82,61 +80,38 @@ public class DomainEvents
 	}
 
 	/**
-	 * Subscribe to events on a named {@link Transport}.
-	 * 
-	 * @param transportName the name of a specific event transport.
-	 * @param consumer the consumer to call when matching events appear on the bus.
-	 * @return a Subscription indicating the subscription details.
-	 */
-	public static Subscription subscribe(String transportName, Consumer consumer)
-	{
-		return instance()._subscribe(transportName, consumer);
-	}
-
-	/**
-	 * Subscribe a consumer to all currently-registered transports.
-	 * 
-	 * @param consumer the consumer to call when matching events appear on the registered transports.
-	 * @return a Subscription instance.
-	 */
-	public static Collection<Subscription> subscribe(Consumer consumer)
-	{
-		return instance()._subscribe(consumer);
-	}
-
-	/**
-	 * Register a {@link Transport} with the DomainEvents manager.
+	 * Register an {@link EventChannel} with the DomainEvents manager.
 	 * 
 	 * @param name the transport name.  Must be unique within the DomainEvents manager.
-	 * @param transport a newly-constructed Transport instance.
+	 * @param channel an EventChannel instance.
 	 * @return true if the name is unique and the event bus was added.  Otherwise, false.
 	 */
-	public static boolean addTransport(String name, Transport transport)
+	public static boolean addChannel(String name, EventChannel channel)
 	{
-		return instance()._addTransport(name, transport);
+		return instance()._addChannel(name, channel);
 	}
 
 	/**
-	 * Register a {@link Transport} with the DomainEvents manager using the transports' fully-qualified
+	 * Register an {@link EventChannel} with the DomainEvents manager using the channel's fully-qualified
 	 * classname as the name.
 	 * 
-	 * @param transport a newly-constructed Transport instance.
+	 * @param channel an EventChannel instance.
 	 * @return true if the name is unique and the transport was added.  Otherwise, false.
 	 */
-	public static boolean addTransport(Transport transport)
+	public static boolean addChannel(EventChannel channel)
 	{
-		return instance()._addTransport(transport.getClass().getName(), transport);
+		return instance()._addChannel(channel.getClass().getName(), channel);
 	}
 	
 	/**
-	 * Get a registered {@link Transport} by name.
+	 * Get a registered {@link EventChannel} by name.
 	 * 
-	 * @param name the name of a transport given at the time of calling addTransport(String, Transport).
+	 * @param name the name of a channel given at the time of calling addChannel(String, EventChannel).
 	 * @return an Transport instance, or null if 'name' not found.
 	 */
-	public static Transport getTransport(String name)
+	public static EventChannel getChannel(String name)
 	{
-		return instance()._getTransport(name);
+		return instance()._getChannel(name);
 	}
 	
 	/**
@@ -150,46 +125,46 @@ public class DomainEvents
 		instance()._shutdown();
 	}
 
-	private boolean _addTransport(String name, Transport transport)
+	private boolean _addChannel(String name, EventChannel channel)
 	{
-		if (!transports.containsKey(name))
+		if (!channels.containsKey(name))
 		{
-			transports.put(name, transport);
+			channels.put(name, channel);
 			return true;
 		}
 		
 		return false;
 	}
 	
-	private Transport _getTransport(String name)
+	private EventChannel _getChannel(String name)
 	{
-		Transport eventBus = transports.get(name);
+		EventChannel channel = channels.get(name);
 
-		if (eventBus == null)
+		if (channel == null)
 		{
-			throw new RuntimeException("Unknown event bus name: " + name);
+			throw new RuntimeException("Unknown channel name: " + name);
 		}
 
-		return eventBus;
+		return channel;
 	}
 	
-	private boolean _hasTransports()
+	private boolean _hasChannels()
 	{
-		return (transports != null);
+		return (channels != null);
 	}
 
 	/**
-	 * Raise an event on all event transports, passing it to applicable consumers asynchronously.
+	 * Raise an event on all event channels, passing it to applicable handlers asynchronously.
 	 * 
 	 * @param event
 	 */
 	private void _publish(Object event)
 	{
-		assert(_hasTransports());
+		assert(_hasChannels());
 
-		for (Transport transport : transports.values())
+		for (EventChannel channel : channels.values())
 		{
-			transport.publish(event);
+			channel.publish(event);
 		}
 	}
 
@@ -201,56 +176,17 @@ public class DomainEvents
 	 */
 	private void _publish(String name, Object event)
 	{
-		assert(_hasTransports());
-		Transport eventBus = _getTransport(name);
-		eventBus.publish(event);
-	}
-
-	/**
-	 * Subscribe to events on a named event bus.
-	 * 
-	 * @param transportName the name of an event bus.
-	 * @param consumer the consumer to call when event appear on the bus.
-	 * @return a Subscription indicating the subscription details.
-	 */
-	private Subscription _subscribe(String transportName, Consumer consumer)
-	{
-		assert(_hasTransports());
-		Transport eventBus = _getTransport(transportName);
-		return eventBus.subscribe(consumer);
-	}
-
-	/**
-	 * Subscribe to events on all currently-registered event buses.
-	 * 
-	 * @param consumer the consumer to call when event appear on the bus.
-	 * @return a collection of Subscription instances, one for each bus subscribed-to.
-	 */
-	private Collection<Subscription> _subscribe(Consumer consumer)
-	{
-		assert(_hasTransports());
-
-		List<Subscription> subscriptions = new ArrayList<>(transports.size());
-
-		transports.values().forEach(new java.util.function.Consumer<Transport>()
-		{
-			@Override
-			public void accept(Transport bus)
-			{
-				subscriptions.add(bus.subscribe(consumer));				
-			}
-		});
-
-		return subscriptions;
+		assert(_hasChannels());
+		_getChannel(name).publish(event);
 	}
 
 	private void _shutdown()
 	{
-		for (Transport transport : transports.values())
+		for (EventChannel transport : channels.values())
 		{
 			transport.shutdown();
 		}
 		
-		transports.clear();
+		channels.clear();
 	}
 }

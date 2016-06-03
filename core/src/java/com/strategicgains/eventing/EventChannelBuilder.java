@@ -19,10 +19,9 @@ package com.strategicgains.eventing;
  * @author toddf
  * @since Oct 4, 2012
  */
-public interface TransportBuilder<T  extends Transport, B>
+public interface EventChannelBuilder<T  extends EventChannel, B extends EventChannelBuilder<?, ?>>
 {
-	public B register(Producer producer);
-	public B subscribe(Consumer consumer);
-	public B unsubscribe(Consumer consumer);
+	public B subscribe(EventHandler handler);
+	public B unsubscribe(EventHandler handler);
 	public T build();
 }
