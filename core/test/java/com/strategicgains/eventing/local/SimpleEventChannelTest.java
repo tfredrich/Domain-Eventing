@@ -22,23 +22,24 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.simple.SimpleEventChannel;
 
 /**
  * @author toddf
  * @since Oct 5, 2012
  */
-public class LocalEventBusTest2
+public class SimpleEventChannelTest
 {
-	private static final int PAUSE_MILLIS = 300;
+	private static final int PAUSE_MILLIS = 500;
 	private TestEventHandler handler1 = new TestEventHandler();
 	private TestEventHandler handler2 = new TestEventHandler();
 	private TestLongEventHandler handler3 = new TestLongEventHandler();
-	private LocalEventChannel channel;
+	private SimpleEventChannel channel;
 
 	@Before
 	public void setup()
 	{
-		channel = new LocalEventChannel(handler1, handler2, handler3);
+		channel = new SimpleEventChannel(handler1, handler2, handler3);
 	}
 	
 	@After
@@ -52,7 +53,7 @@ public class LocalEventBusTest2
 	throws Exception
 	{
 		TestEventHandler otherHandler = new TestEventHandler();
-		LocalEventChannel otherChannel = new LocalEventChannel(otherHandler);
+		SimpleEventChannel otherChannel = new SimpleEventChannel(otherHandler);
 
 		assertEquals(0, handler1.getCallCount());
 		assertEquals(0, handler2.getCallCount());

@@ -13,39 +13,41 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package com.strategicgains.eventing.local;
+package com.strategicgains.eventing.simple;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.strategicgains.eventing.EventChannel;
 import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.SubscribableEventChannel;
 
 /**
  * An Event Channel within the current JVM. Messages will never be published outside the existing JVM.
+ * Uses an in-memory concurrent queue to store messages. There are no durability guarantees--if the JVM
+ * is terminated before messages are consumed, unconsumed messages are lost.
  * 
  * @author toddf
  * @since Oct 18, 2012
  */
-public class LocalEventChannel
-implements EventChannel
+public class SimpleEventChannel
+implements SubscribableEventChannel
 {
 	private Queue<Object> queue = new ConcurrentLinkedQueue<>();
 	private EventMonitor monitor;
 
-	public LocalEventChannel(EventHandler... handlers)
+	public SimpleEventChannel(EventHandler... handlers)
 	{
 		this(false, 0L, Arrays.asList(handlers));
 	}
 
-	public LocalEventChannel(boolean shouldReraiseOnError, long pollDelayMillis, EventHandler... handlers)
+	public SimpleEventChannel(boolean shouldReraiseOnError, long pollDelayMillis, EventHandler... handlers)
 	{
 		this(shouldReraiseOnError, pollDelayMillis, Arrays.asList(handlers));
 	}
 
-	public LocalEventChannel(boolean shouldReraiseOnError, long pollDelayMillis, Collection<EventHandler> handlers)
+	public SimpleEventChannel(boolean shouldReraiseOnError, long pollDelayMillis, Collection<EventHandler> handlers)
 	{
 		super();
 		initializeMonitor(shouldReraiseOnError, pollDelayMillis, handlers);

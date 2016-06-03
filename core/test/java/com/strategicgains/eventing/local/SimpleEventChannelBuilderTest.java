@@ -12,42 +12,44 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
-*/
+ */
 package com.strategicgains.eventing.local;
 
 import static org.junit.Assert.assertEquals;
-
-import java.util.Arrays;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.strategicgains.eventing.EventHandler;
-import com.strategicgains.eventing.EventPredicate;
+import com.strategicgains.eventing.routing.SelectiveEventHandler;
+import com.strategicgains.eventing.simple.SimpleEventChannel;
+import com.strategicgains.eventing.simple.SimpleEventChannelBuilder;
 
 /**
  * @author toddf
- * @since Oct 5, 2012
+ * @since Oct 4, 2012
  */
-public class LocalEventBusTest
+public class SimpleEventChannelBuilderTest
 {
-	private static final int PAUSE_MILLIS = 300;
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-	private LocalEventChannel queue;
+	private SimpleEventChannel eventBus;
 
 	@Before
 	public void setup()
 	{
-		queue = new LocalEventChannel(false, 0L, Arrays.asList(handler, ignoredHandler, longHandler));
+		eventBus = new SimpleEventChannelBuilder()
+			.subscribe(handler)
+			.subscribe(ignoredHandler)
+			.subscribe(longHandler)
+		    .build();
 	}
 	
 	@After
 	public void teardown()
 	{
-		queue.shutdown();
+		eventBus.shutdown();
 	}
 
 	@Test
@@ -55,8 +57,8 @@ public class LocalEventBusTest
 	throws Exception
 	{
 		assertEquals(0, handler.getCallCount());
-		queue.publish(new HandledEvent());
-		Thread.sleep(PAUSE_MILLIS);
+		eventBus.publish(new HandledEvent());
+		Thread.sleep(150);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -68,17 +70,17 @@ public class LocalEventBusTest
 	{
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
-		queue.publish(new HandledEvent());
-		queue.publish(new IgnoredEvent());
-		queue.publish(new HandledEvent());
-		queue.publish(new IgnoredEvent());
-		queue.publish(new HandledEvent());
-		queue.publish(new IgnoredEvent());
-		queue.publish(new HandledEvent());
-		queue.publish(new IgnoredEvent());
-		queue.publish(new HandledEvent());
-		queue.publish(new IgnoredEvent());
-		Thread.sleep(PAUSE_MILLIS);
+		eventBus.publish(new HandledEvent());
+		eventBus.publish(new IgnoredEvent());
+		eventBus.publish(new HandledEvent());
+		eventBus.publish(new IgnoredEvent());
+		eventBus.publish(new HandledEvent());
+		eventBus.publish(new IgnoredEvent());
+		eventBus.publish(new HandledEvent());
+		eventBus.publish(new IgnoredEvent());
+		eventBus.publish(new HandledEvent());
+		eventBus.publish(new IgnoredEvent());
+		Thread.sleep(150);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -89,8 +91,8 @@ public class LocalEventBusTest
 	throws Exception
 	{
 		assertEquals(0, ignoredHandler.getCallCount());
-		queue.publish(new IgnoredEvent());
-		Thread.sleep(PAUSE_MILLIS);
+		eventBus.publish(new IgnoredEvent());
+		Thread.sleep(150);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(1, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -100,11 +102,16 @@ public class LocalEventBusTest
 	public void shouldRetryEventHandler()
 	throws Exception
 	{
-		queue.retryOnError(true);
+		eventBus = new SimpleEventChannelBuilder()
+			.subscribe(handler)
+			.subscribe(ignoredHandler)
+			.subscribe(longHandler)
+			.shouldRepublishOnError(true)
+			.build();
 
 		assertEquals(0, handler.getCallCount());
-		queue.publish(new ErroredEvent());
-		Thread.sleep(PAUSE_MILLIS);
+		eventBus.publish(new ErroredEvent());
+		Thread.sleep(150);
 		assertEquals(6, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -115,8 +122,8 @@ public class LocalEventBusTest
 	throws Exception
 	{
 		assertEquals(0, handler.getCallCount());
-		queue.publish(new ErroredEvent());
-		Thread.sleep(PAUSE_MILLIS);
+		eventBus.publish(new ErroredEvent());
+		Thread.sleep(150);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -127,53 +134,15 @@ public class LocalEventBusTest
 	throws Exception
 	{
 		assertEquals(0, longHandler.getCallCount());
-		queue.publish(new LongEvent());
-		queue.publish(new LongEvent());
-		queue.publish(new LongEvent());
-		queue.publish(new LongEvent());
-		queue.publish(new LongEvent());
-		Thread.sleep(PAUSE_MILLIS);
+		eventBus.publish(new LongEvent());
+		eventBus.publish(new LongEvent());
+		eventBus.publish(new LongEvent());
+		eventBus.publish(new LongEvent());
+		eventBus.publish(new LongEvent());
+		Thread.sleep(150);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(5, longHandler.getCallCount());
-	}
-
-	@Test
-	public void shouldOnlyPublishSelected()
-	throws Exception
-	{
-//		queue.register(new EventProducer()
-//		{
-//			@Override
-//			public Object produce(Object event)
-//			throws Exception
-//			{
-//				return event;
-//			}
-//			
-//			@Override
-//			public Collection<String> getProducedEventTypes()
-//			{
-//				return Arrays.asList(HandledEvent.class.getName());
-//			}
-//		});
-
-		assertEquals(0, handler.getCallCount());
-		assertEquals(0, ignoredHandler.getCallCount());
-		queue.publish(new HandledEvent());
-		queue.publish(new IgnoredEvent());
-		queue.publish(new HandledEvent());
-		queue.publish(new IgnoredEvent());
-		queue.publish(new HandledEvent());
-		queue.publish(new IgnoredEvent());
-		queue.publish(new HandledEvent());
-		queue.publish(new IgnoredEvent());
-		queue.publish(new HandledEvent());
-		queue.publish(new IgnoredEvent());
-		Thread.sleep(PAUSE_MILLIS);
-		assertEquals(5, handler.getCallCount());
-		assertEquals(0, ignoredHandler.getCallCount());
-		assertEquals(0, longHandler.getCallCount());
 	}
 
 	
@@ -211,7 +180,7 @@ public class LocalEventBusTest
 	}
 
 	private static class DomainEventsTestHandler
-	implements EventHandler, EventPredicate
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
@@ -230,14 +199,14 @@ public class LocalEventBusTest
 		}
 
 		@Override
-		public boolean evaluate(Object event)
+		public boolean isSelected(Object event)
 		{
 			return (event instanceof HandledEvent || event instanceof ErroredEvent);
 		}		
 	}
 
 	private static class DomainEventsTestIgnoredEventsHandler
-	implements EventHandler, EventPredicate
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
@@ -254,14 +223,14 @@ public class LocalEventBusTest
 		}
 
 		@Override
-		public boolean evaluate(Object event)
+		public boolean isSelected(Object event)
 		{
 			return (event instanceof IgnoredEvent);
 		}		
 	}
 
 	private static class DomainEventsTestLongEventHandler
-	implements EventHandler, EventPredicate
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
@@ -288,9 +257,9 @@ public class LocalEventBusTest
 		}
 
 		@Override
-		public boolean evaluate(Object event)
+		public boolean isSelected(Object event)
 		{
-			return (event instanceof LongEvent);
+			return(event instanceof LongEvent);
 		}		
 	}
 }

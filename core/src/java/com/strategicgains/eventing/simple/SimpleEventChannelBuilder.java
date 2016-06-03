@@ -13,7 +13,7 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
  */
-package com.strategicgains.eventing.local;
+package com.strategicgains.eventing.simple;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -27,8 +27,8 @@ import com.strategicgains.eventing.EventHandler;
  * @author toddf
  * @since Oct 4, 2012
  */
-public class LocalEventChannelBuilder
-implements EventChannelBuilder<LocalEventChannel, LocalEventChannelBuilder>
+public class SimpleEventChannelBuilder
+implements EventChannelBuilder<SimpleEventChannel, SimpleEventChannelBuilder>
 {
 	private static final long DEFAULT_POLL_DELAY = 0L;
 
@@ -36,38 +36,38 @@ implements EventChannelBuilder<LocalEventChannel, LocalEventChannelBuilder>
 	private boolean shouldRepublishOnError = false;
 	private long pollDelay = DEFAULT_POLL_DELAY;
 
-	public LocalEventChannelBuilder()
+	public SimpleEventChannelBuilder()
 	{
 		super();
 	}
 
 	@Override
-	public LocalEventChannel build()
+	public SimpleEventChannel build()
 	{
-		return new LocalEventChannel(shouldRepublishOnError, pollDelay, handlers);
+		return new SimpleEventChannel(shouldRepublishOnError, pollDelay, handlers);
 	}
 
-    public LocalEventChannelBuilder shouldRepublishOnError(boolean value)
+    public SimpleEventChannelBuilder shouldRepublishOnError(boolean value)
     {
     	this.shouldRepublishOnError = value;
 	    return this;
     }
     
-    public LocalEventChannelBuilder pollDelay(long millis)
+    public SimpleEventChannelBuilder pollDelay(long millis)
     {
     	this.pollDelay = millis;
     	return this;
     }
 
     @Override
-    public LocalEventChannelBuilder subscribe(EventHandler handler)
+    public SimpleEventChannelBuilder subscribe(EventHandler handler)
     {
    		handlers.add(handler);
     	return this;
     }
 
     @Override
-    public LocalEventChannelBuilder unsubscribe(EventHandler handler)
+    public SimpleEventChannelBuilder unsubscribe(EventHandler handler)
     {
     	handlers.remove(handler);
     	return this;

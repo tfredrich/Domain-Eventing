@@ -13,15 +13,19 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package com.strategicgains.eventing.local;
+package com.strategicgains.eventing.simple;
 
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import com.strategicgains.eventing.EventConsumer;
 import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.routing.SelectiveEventHandler;
 
 /**
  * A thread that receives published events and sends them to subscribers.
@@ -45,16 +49,17 @@ extends Thread
 	
 	// SECTION: INSTANCE METHODS
 
+	private Map<Class<?>, List<EventHandler>> handlersByEvent = new ConcurrentHashMap<Class<?>, List<EventHandler>>();
 	private Set<EventHandler> handlers = new LinkedHashSet<>();
 	private boolean shouldShutDown = false;
 	private boolean shouldReRaiseOnError = true;
-	private LocalEventChannel eventQueue;
+	private SimpleEventChannel eventQueue;
 	private long delay;
 
 
 	// SECTION: CONSTRUCTORS
 
-	public EventMonitor(LocalEventChannel queue, long pollDelayMillis)
+	public EventMonitor(SimpleEventChannel queue, long pollDelayMillis)
 	{
 		super();
 		setDaemon(true);
@@ -128,6 +133,7 @@ extends Thread
 		
 		System.out.println("Event monitor exiting...");
 		handlers.clear();
+		handlersByEvent.clear();
 	}
 
 	/**
@@ -146,7 +152,10 @@ extends Thread
                 {
 			    	try
 			    	{
-			    		handler.handle(event);
+		    			if (shouldHandle(handler, event))
+		    			{
+		    				handler.handle(event);
+		    			}
 			    	}
 			    	catch(Exception e)
 			    	{
@@ -166,6 +175,21 @@ extends Thread
 			    		}
 			    	}
                 }
+
+				private boolean shouldHandle(EventHandler handler, Object event)
+				{
+					if (isSelectiveHandler(handler))
+					{
+						return ((SelectiveEventHandler) handler).isSelected(event);
+					}
+
+					return true;
+				}
+
+				private boolean isSelectiveHandler(EventHandler handler)
+				{
+					return (SelectiveEventHandler.class.isAssignableFrom(handler.getClass()));
+				}
     		});
 	    }
     }

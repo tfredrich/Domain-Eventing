@@ -12,43 +12,44 @@
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
- */
+*/
 package com.strategicgains.eventing.local;
 
 import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.strategicgains.eventing.EventHandler;
-import com.strategicgains.eventing.EventPredicate;
+import com.strategicgains.eventing.routing.RoutingEventChannel;
+import com.strategicgains.eventing.routing.RoutingRule;
+import com.strategicgains.eventing.routing.SelectiveEventHandler;
+import com.strategicgains.eventing.simple.SimpleEventChannel;
 
 /**
  * @author toddf
- * @since Oct 4, 2012
+ * @since Oct 5, 2012
  */
-public class LocalTransportBuilderTest
+public class SelectiveEventHandlerTest
 {
+	private static final int PAUSE_MILLIS = 300;
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-	private LocalEventChannel eventBus;
+	private SimpleEventChannel queue;
 
 	@Before
 	public void setup()
 	{
-		eventBus = new LocalEventChannelBuilder()
-			.subscribe(handler)
-			.subscribe(ignoredHandler)
-			.subscribe(longHandler)
-		    .build();
+		queue = new SimpleEventChannel(false, 0L, Arrays.asList(handler, ignoredHandler, longHandler));
 	}
 	
 	@After
 	public void teardown()
 	{
-		eventBus.shutdown();
+		queue.shutdown();
 	}
 
 	@Test
@@ -56,8 +57,10 @@ public class LocalTransportBuilderTest
 	throws Exception
 	{
 		assertEquals(0, handler.getCallCount());
-		eventBus.publish(new HandledEvent());
-		Thread.sleep(150);
+		assertEquals(0, ignoredHandler.getCallCount());
+		assertEquals(0, longHandler.getCallCount());
+		queue.publish(new HandledEvent());
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -69,17 +72,17 @@ public class LocalTransportBuilderTest
 	{
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
-		eventBus.publish(new HandledEvent());
-		eventBus.publish(new IgnoredEvent());
-		eventBus.publish(new HandledEvent());
-		eventBus.publish(new IgnoredEvent());
-		eventBus.publish(new HandledEvent());
-		eventBus.publish(new IgnoredEvent());
-		eventBus.publish(new HandledEvent());
-		eventBus.publish(new IgnoredEvent());
-		eventBus.publish(new HandledEvent());
-		eventBus.publish(new IgnoredEvent());
-		Thread.sleep(150);
+		queue.publish(new HandledEvent());
+		queue.publish(new IgnoredEvent());
+		queue.publish(new HandledEvent());
+		queue.publish(new IgnoredEvent());
+		queue.publish(new HandledEvent());
+		queue.publish(new IgnoredEvent());
+		queue.publish(new HandledEvent());
+		queue.publish(new IgnoredEvent());
+		queue.publish(new HandledEvent());
+		queue.publish(new IgnoredEvent());
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(5, handler.getCallCount());
 		assertEquals(5, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -90,8 +93,8 @@ public class LocalTransportBuilderTest
 	throws Exception
 	{
 		assertEquals(0, ignoredHandler.getCallCount());
-		eventBus.publish(new IgnoredEvent());
-		Thread.sleep(150);
+		queue.publish(new IgnoredEvent());
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(1, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -101,16 +104,11 @@ public class LocalTransportBuilderTest
 	public void shouldRetryEventHandler()
 	throws Exception
 	{
-		eventBus = new LocalEventChannelBuilder()
-			.subscribe(handler)
-			.subscribe(ignoredHandler)
-			.subscribe(longHandler)
-			.shouldRepublishOnError(true)
-			.build();
+		queue.retryOnError(true);
 
 		assertEquals(0, handler.getCallCount());
-		eventBus.publish(new ErroredEvent());
-		Thread.sleep(150);
+		queue.publish(new ErroredEvent());
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(6, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -121,8 +119,8 @@ public class LocalTransportBuilderTest
 	throws Exception
 	{
 		assertEquals(0, handler.getCallCount());
-		eventBus.publish(new ErroredEvent());
-		Thread.sleep(150);
+		queue.publish(new ErroredEvent());
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(1, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(0, longHandler.getCallCount());
@@ -133,15 +131,47 @@ public class LocalTransportBuilderTest
 	throws Exception
 	{
 		assertEquals(0, longHandler.getCallCount());
-		eventBus.publish(new LongEvent());
-		eventBus.publish(new LongEvent());
-		eventBus.publish(new LongEvent());
-		eventBus.publish(new LongEvent());
-		eventBus.publish(new LongEvent());
-		Thread.sleep(150);
+		queue.publish(new LongEvent());
+		queue.publish(new LongEvent());
+		queue.publish(new LongEvent());
+		queue.publish(new LongEvent());
+		queue.publish(new LongEvent());
+		Thread.sleep(PAUSE_MILLIS);
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
 		assertEquals(5, longHandler.getCallCount());
+	}
+
+	@Test
+	public void shouldOnlyPublishSelected()
+	throws Exception
+	{
+		RoutingEventChannel c = new RoutingEventChannel();
+		c.addChannel(new RoutingRule()
+		{	
+			@Override
+			public boolean appliesTo(Object event)
+			{
+				return (HandledEvent.class.equals(event.getClass()));
+			}
+		}, queue);
+
+		assertEquals(0, handler.getCallCount());
+		assertEquals(0, ignoredHandler.getCallCount());
+		c.publish(new HandledEvent());
+		c.publish(new IgnoredEvent());
+		c.publish(new HandledEvent());
+		c.publish(new IgnoredEvent());
+		c.publish(new HandledEvent());
+		c.publish(new IgnoredEvent());
+		c.publish(new HandledEvent());
+		c.publish(new IgnoredEvent());
+		c.publish(new HandledEvent());
+		c.publish(new IgnoredEvent());
+		Thread.sleep(PAUSE_MILLIS);
+		assertEquals(5, handler.getCallCount());
+		assertEquals(0, ignoredHandler.getCallCount());
+		assertEquals(0, longHandler.getCallCount());
 	}
 
 	
@@ -179,7 +209,7 @@ public class LocalTransportBuilderTest
 	}
 
 	private static class DomainEventsTestHandler
-	implements EventHandler, EventPredicate
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
@@ -198,14 +228,14 @@ public class LocalTransportBuilderTest
 		}
 
 		@Override
-		public boolean evaluate(Object event)
+		public boolean isSelected(Object event)
 		{
 			return (event instanceof HandledEvent || event instanceof ErroredEvent);
 		}		
 	}
 
 	private static class DomainEventsTestIgnoredEventsHandler
-	implements EventHandler, EventPredicate
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
@@ -222,14 +252,14 @@ public class LocalTransportBuilderTest
 		}
 
 		@Override
-		public boolean evaluate(Object event)
+		public boolean isSelected(Object event)
 		{
 			return (event instanceof IgnoredEvent);
 		}		
 	}
 
 	private static class DomainEventsTestLongEventHandler
-	implements EventHandler, EventPredicate
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
@@ -256,9 +286,9 @@ public class LocalTransportBuilderTest
 		}
 
 		@Override
-		public boolean evaluate(Object event)
+		public boolean isSelected(Object event)
 		{
-			return(event instanceof LongEvent);
+			return (event instanceof LongEvent);
 		}		
 	}
 }

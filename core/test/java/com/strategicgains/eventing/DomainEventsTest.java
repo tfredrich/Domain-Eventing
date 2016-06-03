@@ -22,8 +22,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.strategicgains.eventing.local.LocalEventChannel;
-import com.strategicgains.eventing.local.LocalEventChannelBuilder;
+import com.strategicgains.eventing.routing.RoutingEventChannel;
+import com.strategicgains.eventing.routing.RoutingRule;
+import com.strategicgains.eventing.routing.SelectiveEventHandler;
+import com.strategicgains.eventing.simple.SimpleEventChannel;
+import com.strategicgains.eventing.simple.SimpleEventChannelBuilder;
 
 
 /**
@@ -40,7 +43,7 @@ public class DomainEventsTest
 	@Before
 	public void setup()
 	{
-		EventChannel q = new LocalEventChannelBuilder()
+		EventChannel q = new SimpleEventChannelBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
@@ -110,7 +113,7 @@ public class DomainEventsTest
 	public void shouldRetryEventHandler()
 	throws Exception
 	{
-		((LocalEventChannel) DomainEvents.getChannel("primary")).retryOnError(true);
+		((SimpleEventChannel) DomainEvents.getChannel("primary")).retryOnError(true);
 		assertEquals(0, handler.getCallCount());
 		DomainEvents.publish(new ErroredEvent());
 		Thread.sleep(150);
@@ -152,22 +155,18 @@ public class DomainEventsTest
 	public void shouldOnlyPublishSelected()
 	throws Exception
 	{
-//		((LocalEventChannel) DomainEvents.getTransport("primary"))
-//		.register(new EventProducer()
-//		{
-//			@Override
-//			public Object produce(Object event)
-//			throws Exception
-//			{
-//				return event;
-//			}
-//			
-//			@Override
-//			public Collection<String> getProducedEventTypes()
-//			{
-//				return Arrays.asList(HandledEvent.class.getName());
-//			}
-//		});
+		RoutingEventChannel r = new RoutingEventChannel();
+		r.addChannel(new RoutingRule()
+		{
+			@Override
+			public boolean appliesTo(Object event)
+			{
+				return (HandledEvent.class.equals(event.getClass()));
+			}
+		}, DomainEvents.getChannel("primary"));
+
+		assertTrue(DomainEvents.removeChannel("primary"));
+		assertTrue(DomainEvents.addChannel("primary", r));
 
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
@@ -191,27 +190,21 @@ public class DomainEventsTest
 	public void shouldPublishMultipleBusses()
 	throws Exception
 	{
-		EventChannel q = new LocalEventChannelBuilder()
+		EventChannel q = new SimpleEventChannelBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
-//			.register(new EventProducer()
-//			{
-//				@Override
-//				public Object produce(Object event)
-//				throws Exception
-//				{
-//					return event;
-//				}
-//				
-//				@Override
-//				public Collection<String> getProducedEventTypes()
-//				{
-//					return Arrays.asList(HandledEvent.class.getName());
-//				}
-//			})
 			.build();
-		DomainEvents.addChannel("secondary", q);
+		RoutingEventChannel r = new RoutingEventChannel();
+		r.addChannel(new RoutingRule()
+		{
+			@Override
+			public boolean appliesTo(Object event)
+			{
+				return (HandledEvent.class.equals(event.getClass()));
+			}
+		}, q);
+		DomainEvents.addChannel("secondary", r);
 
 		assertEquals(0, handler.getCallCount());
 		assertEquals(0, ignoredHandler.getCallCount());
@@ -266,7 +259,7 @@ public class DomainEventsTest
 	}
 
 	private static class DomainEventsTestHandler
-	implements EventHandler, EventPredicate
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
@@ -285,14 +278,14 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public boolean evaluate(Object event)
+		public boolean isSelected(Object event)
 		{
-			return (event instanceof HandledEvent || event instanceof ErroredEvent);
+			return (HandledEvent.class.isAssignableFrom(event.getClass()));
 		}
 	}
 
 	private static class DomainEventsTestIgnoredEventsHandler
-	implements EventHandler, EventPredicate
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
@@ -309,14 +302,14 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public boolean evaluate(Object event)
+		public boolean isSelected(Object event)
 		{
-			return (event instanceof IgnoredEvent);
+			return (IgnoredEvent.class.isAssignableFrom(event.getClass()));
 		}
 	}
 
 	private static class DomainEventsTestLongEventHandler
-	implements EventHandler, EventPredicate
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
@@ -343,9 +336,9 @@ public class DomainEventsTest
 		}
 
 		@Override
-		public boolean evaluate(Object event)
+		public boolean isSelected(Object event)
 		{
-			return (event instanceof LongEvent);
+			return (LongEvent.class.isAssignableFrom(event.getClass()));
 		}
 	}
 }

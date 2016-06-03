@@ -113,6 +113,11 @@ public class DomainEvents
 	{
 		return instance()._getChannel(name);
 	}
+
+	public static boolean removeChannel(String name)
+	{
+		return instance()._removeChannel(name);
+	}
 	
 	/**
 	 * Shutdown all the event transports, releasing their resources cleanly.
@@ -151,6 +156,11 @@ public class DomainEvents
 	private boolean _hasChannels()
 	{
 		return (channels != null);
+	}
+
+	private boolean _removeChannel(String name)
+	{
+		return (channels.remove(name) != null);
 	}
 
 	/**

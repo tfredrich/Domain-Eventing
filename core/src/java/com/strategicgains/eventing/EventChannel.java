@@ -43,21 +43,6 @@ public interface EventChannel
 	public boolean publish(Object event);
 
 	/**
-	 * Subscribe a consumer to this event transport for the given eventTypes.
-	 * 
-	 * @param handler an event handler that implements the {@link EventHandler} interface.
-	 * @return true if the subscription was successful. Otherwise, false.
-	 */
-	public boolean subscribe(EventHandler handler);
-
-	/**
-	 * Remove a subscription from the underlying event transport.
-	 * 
-	 * @param handler an {@link EventHandler}
-	 */
-	public void unsubscribe(EventHandler handler);
-
-	/**
 	 * Terminate event handling on the transport and free all consumed resources.
 	 */
 	public void shutdown();
