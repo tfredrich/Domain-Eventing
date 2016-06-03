@@ -25,27 +25,21 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.strategicgains.eventing.Consumer;
-import com.strategicgains.eventing.Subscription;
-import com.strategicgains.eventing.Transport;
+import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.SubscribableEventChannel;
 
 /**
  * @author tfredrich
  * @since 20 May 2016
  */
-public class KafkaEventTransport
-implements Transport
+public class KafkaEventChannel
+implements SubscribableEventChannel
 {
 	private String topic;
 	private Producer<String, String> producer;
 	private ObjectMapper mapper;
 
-	public KafkaEventTransport(Properties config, String topic)
-	{
-		this(config, topic, new ObjectMapper());
-	}
-
-	public KafkaEventTransport(Properties config, String topic, ObjectMapper mapper)
+	public KafkaEventChannel(Properties config, String topic, ObjectMapper mapper, EventHandler... eventHandlers)
 	{
 		this.producer = new KafkaProducer<>(config);
 		this.topic = topic;
@@ -53,7 +47,7 @@ implements Transport
 	}
 
 	@Override
-	public void publish(Object event)
+	public boolean publish(Object event)
 	{
 		try
 		{
@@ -64,16 +58,18 @@ implements Transport
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		return true;
 	}
 
 	@Override
-	public Subscription subscribe(Consumer handler)
+	public boolean subscribe(EventHandler handler)
 	{
-		return null;
+		return false;
 	}
 
 	@Override
-	public void unsubscribe(Subscription subscription)
+	public void unsubscribe(EventHandler handler)
 	{
 	}
 

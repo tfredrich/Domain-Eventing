@@ -20,51 +20,56 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.strategicgains.eventing.Consumer;
-import com.strategicgains.eventing.TransportBuilder;
+import com.strategicgains.eventing.EventChannelBuilder;
+import com.strategicgains.eventing.EventHandler;
 
 /**
  * @author tfredrich
  * @since 20 May 2016
  */
-public class KafkaEventBusBuilder
-implements TransportBuilder<KafkaEventBus, KafkaEventBusBuilder>
+public class KafkaEventChannelBuilder
+implements EventChannelBuilder<KafkaEventChannel, KafkaEventChannelBuilder>
 {
 	private Properties config;
 	private ObjectMapper mapper;
-	private Set<Consumer> consumers = new LinkedHashSet<>();
+	private Set<EventHandler> handlers = new LinkedHashSet<>();
+	private String topic;
 
-	public KafkaEventBusBuilder configuration(Properties props)
+	public KafkaEventChannelBuilder configuration(Properties props)
 	{
 		this.config = props;
 		return this;
 	}
 
-	public KafkaEventBusBuilder jsonMapper(ObjectMapper mapper)
+	public KafkaEventChannelBuilder jsonMapper(ObjectMapper mapper)
 	{
 		this.mapper = mapper;
 		return this;
 	}
 
-	@Override
-	public KafkaEventBusBuilder subscribe(Consumer consumer)
+	public KafkaEventChannelBuilder withTopic(String topic)
 	{
-		consumers.add(consumer);
+		this.topic = topic;
 		return this;
 	}
 
 	@Override
-	public KafkaEventBusBuilder unsubscribe(Consumer consumer)
+	public KafkaEventChannelBuilder subscribe(EventHandler handler)
 	{
-		consumers.remove(consumer);
+		handlers.add(handler);
 		return this;
 	}
 
 	@Override
-	public KafkaEventBus build()
+	public KafkaEventChannelBuilder unsubscribe(EventHandler handler)
 	{
-		KafkaEventBus bus = new KafkaEventBus(config, topic, mapper);
-		// TODO Auto-generated method stub
-		return null;
+		handlers.remove(handler);
+		return this;
+	}
+
+	@Override
+	public KafkaEventChannel build()
+	{
+		return new KafkaEventChannel(config, topic, mapper, handlers.toArray(new EventHandler[0]));
 	}
 }
