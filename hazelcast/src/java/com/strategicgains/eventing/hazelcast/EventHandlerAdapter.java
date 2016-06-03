@@ -20,8 +20,8 @@ import java.util.concurrent.Executors;
 
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
-import com.strategicgains.eventing.Consumer;
-import com.strategicgains.eventing.Events;
+import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.routing.SelectiveEventHandler;
 
 /**
  * @author toddf
@@ -36,23 +36,36 @@ implements MessageListener<Object>
 
 	// SECTION: INSTANCE VARIABLES
 
-	private Consumer handler;
+	private EventHandler handler;
+	private boolean isSelectiveHandler;
 
-	public EventHandlerAdapter(Consumer handler)
+	public EventHandlerAdapter(EventHandler handler)
 	{
 		super();
 		this.handler = handler;
+		isSelectiveHandler = (SelectiveEventHandler.class.isAssignableFrom(handler.getClass()));
 	}
 
 	@Override
 	public void onMessage(Message<Object> message)
 	{
-		System.out.println("Message received: " + message.toString());
+		// TODO: implement logging
+//		System.out.println("Message received: " + message.toString());
 
-		if (handler.getConsumedEventTypes().contains(Events.getEventType(message.getMessageObject())))
+		if (shouldHandle(message.getMessageObject()))
 		{
 			processEvent(message.getMessageObject());
 		}
+	}
+
+	private boolean shouldHandle(Object messageObject)
+	{
+		if (isSelectiveHandler)
+		{
+			return ((SelectiveEventHandler) handler).isSelected(messageObject);
+		}
+
+		return true;
 	}
 
 	private void processEvent(final Object event)
@@ -66,7 +79,7 @@ implements MessageListener<Object>
 			{
 				try
 				{
-					handler.consume(event);
+					handler.handle(event);
 				}
 				catch (Exception e)
 				{

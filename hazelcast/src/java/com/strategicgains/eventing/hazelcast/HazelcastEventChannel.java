@@ -18,31 +18,43 @@ package com.strategicgains.eventing.hazelcast;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
-import com.strategicgains.eventing.BaseSubscription;
-import com.strategicgains.eventing.Consumer;
-import com.strategicgains.eventing.Subscription;
-import com.strategicgains.eventing.Transport;
+import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.SubscribableEventChannel;
 
 /**
  * @author toddf
  * @since Oct 18, 2012
  */
-public class HazelcastEventTransport
-implements Transport
+public class HazelcastEventChannel
+implements SubscribableEventChannel
 {
 	private ITopic<Object> topic;
-	private Map<Consumer, String> subscriptions = new ConcurrentHashMap<Consumer, String>();
+	private Map<EventHandler, String> subscriptions = new ConcurrentHashMap<>();
 
-	protected HazelcastEventTransport()
+	public HazelcastEventChannel(String topicName, EventHandler... eventHandlers)
 	{
-		super();
+		this(new Config(), topicName, eventHandlers);
 	}
 
-	public HazelcastEventTransport(ITopic<Object> topic)
+	public HazelcastEventChannel(Config config, String topicName, EventHandler... eventHandlers)
 	{
-		this();
-		setTopic(topic);
+		super();
+
+		HazelcastInstance hazelcast = Hazelcast.newHazelcastInstance(config);
+		setTopic(hazelcast.getTopic(topicName));
+		subscribeAll(eventHandlers);
+	}
+
+	private void subscribeAll(EventHandler... eventHandlers)
+	{
+		for (EventHandler handler : eventHandlers)
+		{
+			subscribe(handler);
+		}
 	}
 
 	protected void setTopic(ITopic<Object> aTopic)
@@ -51,9 +63,10 @@ implements Transport
     }
 
 	@Override
-	public void publish(Object event)
+	public boolean publish(Object event)
 	{
 		topic.publish(event);
+		return true;
 	}
 
 	@Override
@@ -63,17 +76,17 @@ implements Transport
 	}
 
 	@Override
-	public Subscription subscribe(Consumer consumer)
+	public boolean subscribe(EventHandler consumer)
 	{
 		String listenerId = topic.addMessageListener(new EventHandlerAdapter(consumer));
 		subscriptions.put(consumer, listenerId);
-		return new BaseSubscription(consumer);
+		return true;
 	}
 
 	@Override
-	public void unsubscribe(Subscription subscription)
+	public void unsubscribe(EventHandler handler)
 	{
-		String listenerId = subscriptions.get(subscription.getConsumer());
+		String listenerId = subscriptions.get(handler);
 
 		if (listenerId != null)
 		{

@@ -17,31 +17,27 @@ package com.strategicgains.eventing.hazelcast;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.routing.SelectiveEventHandler;
 
 /**
  * @author toddf
  * @since Oct 4, 2012
  */
-public class HazelcastEventBusBuilderTest
+public class HazelcastEventChannelBuilderTest
 {
 	private DomainEventsTestHandler handler = new DomainEventsTestHandler();
 	private DomainEventsTestIgnoredEventsHandler ignoredHandler = new DomainEventsTestIgnoredEventsHandler();
 	private DomainEventsTestLongEventHandler longHandler = new DomainEventsTestLongEventHandler();
-	private HazelcastEventBus<Serializable> queue;
+	private HazelcastEventChannel queue;
 
 	@Before
 	public void setup()
 	{
-		queue = new HazelcastEventBusBuilder<Serializable>()
+		queue = new HazelcastEventChannelBuilder()
 			.subscribe(handler)
 			.subscribe(ignoredHandler)
 			.subscribe(longHandler)
@@ -133,12 +129,12 @@ public class HazelcastEventBusBuilderTest
 	// SECTION: INNER CLASSES
 	
 	private static class DomainEventsTestHandler
-	implements Consumer
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
 		@Override
-		public void consume(Object event)
+		public void handle(Object event)
 		{
 			assert(HandledEvent.class.isAssignableFrom(event.getClass()));
 
@@ -152,19 +148,19 @@ public class HazelcastEventBusBuilderTest
 		}
 
 		@Override
-		public Collection<String> getConsumedEventTypes()
+		public boolean isSelected(Object event)
 		{
-			return Arrays.asList(HandledEvent.class.getName(), ErroredEvent.class.getName());
+			return (HandledEvent.class.isAssignableFrom(event.getClass()));
 		}
 	}
 
 	private static class DomainEventsTestIgnoredEventsHandler
-	implements Consumer
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
 		@Override
-		public void consume(Object event)
+		public void handle(Object event)
 		{
 			assert(event.getClass().equals(IgnoredEvent.class));
 			++callCount;
@@ -176,19 +172,19 @@ public class HazelcastEventBusBuilderTest
 		}
 
 		@Override
-		public Collection<String> getConsumedEventTypes()
+		public boolean isSelected(Object event)
 		{
-			return Arrays.asList(IgnoredEvent.class.getName());
+			return (IgnoredEvent.class.isAssignableFrom(event.getClass()));
 		}
 	}
 
 	private static class DomainEventsTestLongEventHandler
-	implements Consumer
+	implements SelectiveEventHandler
 	{
 		private int callCount = 0;
 
 		@Override
-		public void consume(Object event)
+		public void handle(Object event)
 		{
 			assert(event.getClass().equals(LongEvent.class));
 			++callCount;
@@ -210,9 +206,9 @@ public class HazelcastEventBusBuilderTest
 		}
 
 		@Override
-		public Collection<String> getConsumedEventTypes()
+		public boolean isSelected(Object event)
 		{
-			return Arrays.asList(LongEvent.class.getName());
+			return (LongEvent.class.isAssignableFrom(event.getClass()));
 		}
 	}
 }

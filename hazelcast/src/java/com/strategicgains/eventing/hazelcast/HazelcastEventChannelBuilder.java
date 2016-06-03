@@ -15,30 +15,27 @@
  */
 package com.strategicgains.eventing.hazelcast;
 
-import java.io.Serializable;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.hazelcast.config.Config;
-import com.strategicgains.eventing.TransportBuilder;
-import com.strategicgains.eventing.Consumer;
+import com.strategicgains.eventing.EventChannelBuilder;
+import com.strategicgains.eventing.EventHandler;
 
 /**
  * @author toddf
  * @since Oct 5, 2012
  */
-public class HazelcastEventBusBuilder<T extends Serializable>
-implements TransportBuilder<HazelcastEventBus<T>, HazelcastEventBusBuilder<T>>
+public class HazelcastEventChannelBuilder
+implements EventChannelBuilder<HazelcastEventChannel, HazelcastEventChannelBuilder>
 {
-	private static final String DEFAULT_QUEUE_NAME = "domain-events";
+	private static final String DEFAULT_TOPIC_NAME = "domain-events";
 
 	private Config config = null;
-	private String queueName = DEFAULT_QUEUE_NAME;
-	private Set<Consumer> subscribers = new LinkedHashSet<Consumer>();
+	private String topicName = DEFAULT_TOPIC_NAME;
+	private Set<EventHandler> handlers = new LinkedHashSet<>();
 
-	public HazelcastEventBusBuilder()
+	public HazelcastEventChannelBuilder()
 	{
 		super();
 	}
@@ -50,30 +47,37 @@ implements TransportBuilder<HazelcastEventBus<T>, HazelcastEventBusBuilder<T>>
 	 * @param configuration Hazelcast Config instance.
 	 * @return this builder to facilitate method chainging.
 	 */
-	public HazelcastEventBusBuilder<T> setConfiguration(Config configuration)
+	public HazelcastEventChannelBuilder withConfiguration(Config configuration)
 	{
 		this.config = configuration;
 		return this;
 	}
 
-	@Override
-	public HazelcastEventBusBuilder<T> subscribe(Consumer handler)
+	public HazelcastEventChannelBuilder withTopic(String topicName)
 	{
-		subscribers.add(handler);
+		this.topicName = topicName;
 		return this;
 	}
 
 	@Override
-	public HazelcastEventBusBuilder<T> unsubscribe(Consumer handler)
+	public HazelcastEventChannelBuilder subscribe(EventHandler handler)
 	{
-		subscribers.remove(handler);
+		handlers.add(handler);
 		return this;
 	}
 
 	@Override
-	public HazelcastEventBus<T> build()
+	public HazelcastEventChannelBuilder unsubscribe(EventHandler handler)
 	{
-		List<Consumer> subscriberList = Arrays.asList(subscribers.toArray(new Consumer[0]));
-		return (config == null ? new HazelcastEventBus<T>(queueName, subscriberList) : new HazelcastEventBus<T>(queueName, config, subscriberList));
+		handlers.remove(handler);
+		return this;
+	}
+
+	@Override
+	public HazelcastEventChannel build()
+	{
+		if (config == null) config = new Config();
+
+		return new HazelcastEventChannel(config, topicName, handlers.toArray(new EventHandler[0]));
 	}
 }
