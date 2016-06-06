@@ -55,7 +55,7 @@ implements SubscribableEventChannel
 		}
 		catch (JsonProcessingException e)
 		{
-			// TODO Auto-generated catch block
+			// TODO implement logging
 			e.printStackTrace();
 		}
 
