@@ -19,51 +19,51 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import akka.actor.ActorSystem;
+import com.strategicgains.eventing.EventChannelBuilder;
+import com.strategicgains.eventing.EventHandler;
 
-import com.strategicgains.eventing.TransportBuilder;
-import com.strategicgains.eventing.Consumer;
+import akka.actor.ActorSystem;
 
 /**
  * @author tfredrich
  * @since Jul 13, 2015
  */
-public class AkkaEventBusBuilder
-implements TransportBuilder<AkkaEventBus, AkkaEventBusBuilder>
+public class AkkaEventChannelBuilder
+implements EventChannelBuilder<AkkaEventChannel, AkkaEventChannelBuilder>
 {
 	private ActorSystem actorSystem;
-	private Set<Consumer> subscribers = new LinkedHashSet<Consumer>();
+	private Set<EventHandler> subscribers = new LinkedHashSet<EventHandler>();
 
-	public AkkaEventBusBuilder()
+	public AkkaEventChannelBuilder()
 	{
 		super();
 	}
 
-	public AkkaEventBusBuilder actorSystem(ActorSystem actorSystem)
+	public AkkaEventChannelBuilder actorSystem(ActorSystem actorSystem)
 	{
 		this.actorSystem = actorSystem;
 		return this;
 	}
 
 	@Override
-    public AkkaEventBusBuilder subscribe(Consumer handler)
+    public AkkaEventChannelBuilder subscribe(EventHandler handler)
     {
 		subscribers.add(handler);
 	    return this;
     }
 
 	@Override
-    public AkkaEventBusBuilder unsubscribe(Consumer handler)
+    public AkkaEventChannelBuilder unsubscribe(EventHandler handler)
     {
 		subscribers.remove(handler);
 	    return this;
     }
 
 	@Override
-    public AkkaEventBus build()
+    public AkkaEventChannel build()
     {
-		AkkaEventBus bus = (actorSystem == null ? new AkkaEventBus() : new AkkaEventBus(actorSystem));
-		bus.subscribeAll(Arrays.asList(subscribers.toArray(new Consumer[0])));
-	    return bus;
+		AkkaEventChannel channel = (actorSystem == null ? new AkkaEventChannel() : new AkkaEventChannel(actorSystem));
+		channel.subscribeAll(Arrays.asList(subscribers.toArray(new EventHandler[0])));
+	    return channel;
     }
 }

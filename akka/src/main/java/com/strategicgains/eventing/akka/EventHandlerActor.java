@@ -15,8 +15,8 @@
  */
 package com.strategicgains.eventing.akka;
 
-import com.strategicgains.eventing.Consumer;
-import com.strategicgains.eventing.Events;
+import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.routing.SelectiveEventHandler;
 
 import akka.actor.Props;
 import akka.actor.UntypedActor;
@@ -29,19 +29,21 @@ import akka.japi.Creator;
 public class EventHandlerActor
 extends UntypedActor
 {
-	private Consumer handler;
+	private EventHandler handler;
+	private boolean isSelectiveHandler;
 
-	public EventHandlerActor(Consumer handler)
+	public EventHandlerActor(EventHandler handler)
 	{
 		super();
 		this.handler = handler;
+		isSelectiveHandler = (SelectiveEventHandler.class.isAssignableFrom(handler.getClass()));
 	}
 
 	@Override
 	public void onReceive(final Object event)
 	throws Exception
 	{
-		if (event != null && handler.getConsumedEventTypes().contains(Events.getEventType(event)))
+		if (event != null && shouldHandle(event))
 		{
 			getContext().dispatcher().execute(new Runnable()
 			{
@@ -50,7 +52,7 @@ extends UntypedActor
                 {
 					try
                     {
-	                    handler.consume(event);
+	                    handler.handle(event);
                     }
                     catch (Exception e)
                     {
@@ -61,9 +63,19 @@ extends UntypedActor
 		}
 	}
 
-	public static Props props(final Consumer handler)
+	public static Props props(final EventHandler handler)
 	{
 		return Props.create(new ActorFactory(handler));
+	}
+
+	private boolean shouldHandle(Object event)
+	{
+		if (isSelectiveHandler)
+		{
+			return ((SelectiveEventHandler) handler).isSelected(event);
+		}
+
+		return true;
 	}
 
 	private static class ActorFactory
@@ -71,9 +83,9 @@ extends UntypedActor
 	{
 		private static final long serialVersionUID = -1142009288324369918L;
 
-		private Consumer handler;
+		private EventHandler handler;
 
-		public ActorFactory(Consumer handler)
+		public ActorFactory(EventHandler handler)
 		{
 			super();
 			this.handler = handler;

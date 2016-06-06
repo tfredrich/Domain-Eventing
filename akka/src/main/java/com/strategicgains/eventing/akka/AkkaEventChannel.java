@@ -15,60 +15,73 @@
 */
 package com.strategicgains.eventing.akka;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.strategicgains.eventing.BaseSubscription;
-import com.strategicgains.eventing.Consumer;
-import com.strategicgains.eventing.Subscription;
-import com.strategicgains.eventing.Transport;
+import com.strategicgains.eventing.EventHandler;
+import com.strategicgains.eventing.SubscribableEventChannel;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.event.japi.ScanningEventBus;
 
 /**
- * @author toddf
+ * @author tfredrich
  * @since Jul 13, 2015
  */
-public class AkkaEventTransport
-implements Transport
+public class AkkaEventChannel
+implements SubscribableEventChannel
 {
 	private ActorSystem system;
-	private Map<Consumer, ActorRef> subscribers = new ConcurrentHashMap<Consumer, ActorRef>();
-	private AkkaBusImpl akkaBus;
+	private Map<EventHandler, ActorRef> subscribers = new ConcurrentHashMap<>();
+	private AkkaBus akkaBus;
 
-	public AkkaEventTransport(ActorSystem actorSystem)
+	public AkkaEventChannel()
+    {
+		this(ActorSystem.create("AkkaDomainEventing"));
+    }
+
+	public AkkaEventChannel(ActorSystem actorSystem)
     {
 		super();
 		this.system = actorSystem;
-		akkaBus = new AkkaBusImpl();
+		akkaBus = new AkkaBus();
     }
 
 	@Override
-	public void publish(Object event)
+	public boolean publish(Object event)
 	{
 		akkaBus.publish(event);
+		return true;
 	}
 
 	@Override
-	public Subscription subscribe(Consumer consumer)
+	public boolean subscribe(EventHandler handler)
 	{
-		ActorRef adapter = system.actorOf(EventHandlerActor.props(consumer));
+		ActorRef adapter = system.actorOf(EventHandlerActor.props(handler));
 		akkaBus.subscribe(adapter, Object.class);
-		subscribers.put(consumer, adapter);
-		return new BaseSubscription(consumer);
+		subscribers.put(handler, adapter);
+		return true;
 	}
 
+	public void subscribeAll(List<EventHandler> handlers)
+    {
+		for (EventHandler handler : handlers)
+		{
+			subscribe(handler);
+		}
+    }
+
 	@Override
-	public void unsubscribe(Subscription subscription)
+	public void unsubscribe(EventHandler handler)
 	{
-		ActorRef adapter = subscribers.get(subscription.getConsumer());
+		ActorRef adapter = subscribers.get(handler);
 
 		if (adapter != null)
 		{
 			akkaBus.unsubscribe(adapter);
-			subscribers.remove(subscription.getConsumer());
+			subscribers.remove(handler);
 		}
 	}
 
@@ -78,7 +91,7 @@ implements Transport
 		system.shutdown();
 	}
 
-	private class AkkaBusImpl
+	private class AkkaBus
 	extends ScanningEventBus<Object, ActorRef, Class<?>>
 	{
 		@Override
