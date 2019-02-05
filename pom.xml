@@ -18,8 +18,7 @@
 	<modules>
 		<module>core</module>
 		<module>hazelcast</module>
-		<module>akka</module>
-		<module>kafka</module>
+		<module>ignite</module>
 	</modules>
 
 	<licenses>
