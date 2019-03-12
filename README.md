@@ -1,5 +1,4 @@
 [![Stories in Ready](https://badge.waffle.io/tfredrich/Domain-Eventing.png?label=ready)](https://waffle.io/tfredrich/Domain-Eventing)  
-[![Build Status](https://buildhive.cloudbees.com/job/tfredrich/job/Domain-Eventing/badge/icon)](https://buildhive.cloudbees.com/job/tfredrich/job/Domain-Eventing/)
 
 Overview
 ========
@@ -27,8 +26,11 @@ an exercise for the reader... :-)
 
 Event Production
 ================
-In this model, published events stay within the current Java virtual machine (JVM).  This is the simplest and fastest option.
+In the core model, published events stay within the current Java virtual machine (JVM).  This is the simplest and fastest option.
 However, as published events are in an in-memory queue, it is possible to lose messages if the JVM goes down unexpectedly.
+
+Other implementations, either Hazelcast or Apache Ignite, can be configured to replicate events across a cluster of nodes
+minimizing event loss. 
 
 Maven Usage
 ===========
@@ -64,19 +66,11 @@ Development:
 			<version>2.0.0-SNAPSHOT</version>
 		</dependency>
 ```
-OR (for Akka-based eventing):
+OR (for Apache Ignite-based eventing):
 ```xml
 		<dependency>
 			<groupId>com.strategicgains.domain-eventing</groupId>
-			<artifactId>domain-eventing-akka</artifactId>
-			<version>2.0.0-SNAPSHOT</version>
-		</dependency>
-```
-OR (for Kafka-based eventing):
-```xml
-		<dependency>
-			<groupId>com.strategicgains.domain-eventing</groupId>
-			<artifactId>domain-eventing-kafka</artifactId>
+			<artifactId>domain-eventing-ignite</artifactId>
 			<version>2.0.0-SNAPSHOT</version>
 		</dependency>
 ```
@@ -114,9 +108,9 @@ Release Notes
 =============
 ### 2.0.0 - SNAPSHOT (in 'master' branch)
 * Introduced concept of 'topic' for subscription to allow for larger messaging context (e.g. Kafka, RabbitMQ, etc.), which makes the Domain-Eventing library more of a messaging abstraction instead of just domain eventing.
-* Introduced domain-eventing-kafka supporting Kafka-based eventing.
-* Upgraded to Hazelcast version 3.6.2
-* Upgraded version akka-actor_2.11 version 2.3.15
+* Introduced domain-eventing-ignite, supporting Apache Ignite.
+* Upgraded to Hazelcast version 3.11.1
+* Breaking Change: Removed Akka support due to lack of use. Let me know if I'm wrong.
 
 ### 1.0 - Release 10 Feb 2016
 * Added domain-eventing-akka, supporting Akka-based eventing. Hazelcast eventing support will no longer be maintained unless somebody hollers.
